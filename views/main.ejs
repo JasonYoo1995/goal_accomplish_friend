@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.10/jquery-ui.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
+    <link href="stylesheets/style2.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+    <h1>기록 조회</h1>
+    <div id='contain'>
+        <div style="font-size: 300%; margin:10px"> 날짜 선택</div>
+        <input type="date" id="calendar" onkeydown="return false" min="2021-01-01" max="2100-12-31">
+        <select>
+            <option>친구</option>
+        </select>
+        <button id='input'>수정</button>
+    </div>
+    <table align="center" border='1px' width='90%' height='90%' cellspacing="0">
+        <tr align="center" class="title">
+            <td width="16%" rowspan='2'>날짜</td>
+            <td id='myself' colspan="3">나</td>
+            <td id='friend' colspan="3">친구</td>
+        </tr>
+        <tr align="center" class="title">
+            <td width="16%">목표</td>
+            <td width="16%">실천 내역</td>
+            <td width="8%">달성</td>
+            <td width="16%">목표</td>
+            <td width="16%">실천 내역</td>
+            <td width="8%">달성</td>
+        </tr>
+        <tr id='week0' class="content" align="left">
+            <td>
+                <div id='date'></div>
+            </td>
+            <td>
+                <div id='my0'></div>
+            </td>
+            <td>
+                <div id='my1'></div>
+            </td>
+            <td class='accomplish'>
+                <div id='my2'></div>
+            </td>
+            <td>
+                <div id='his0'></div>
+            </td>
+            <td>
+                <div id='his1'></div>
+            </td>
+            <td class='accomplish'>
+                <div id='his2'></div>
+            </td>
+        </tr>
+        <tr id='week1' class="content" align="left">
+            <td>
+                <div id='date'></div>
+            </td>
+            <td>
+                <div id='my0'></div>
+            </td>
+            <td>
+                <div id='my1'></div>
+            </td>
+            <td class='accomplish'>
+                <div id='my2'></div>
+            </td>
+            <td>
+                <div id='his0'></div>
+            </td>
+            <td>
+                <div id='his1'></div>
+            </td>
+            <td class='accomplish'>
+                <div id='his2'></div>
+            </td>
+        </tr>
+        <tr id='week2' class="content" align="left">
+            <td>
+                <div id='date'></div>
+            </td>
+            <td>
+                <div id='my0'></div>
+            </td>
+            <td>
+                <div id='my1'></div>
+            </td>
+            <td class='accomplish'>
+                <div id='my2'></div>
+            </td>
+            <td>
+                <div id='his0'></div>
+            </td>
+            <td>
+                <div id='his1'></div>
+            </td>
+            <td class='accomplish'>
+                <div id='his2'></div>
+            </td>
+        </tr>
+        <tr id='week3' class="content" align="left">
+            <td>
+                <div id='date'></div>
+            </td>
+            <td>
+                <div id='my0'></div>
+            </td>
+            <td>
+                <div id='my1'></div>
+            </td>
+            <td class='accomplish'>
+                <div id='my2'></div>
+            </td>
+            <td>
+                <div id='his0'></div>
+            </td>
+            <td>
+                <div id='his1'></div>
+            </td>
+            <td class='accomplish'>
+                <div id='his2'></div>
+            </td>
+        </tr>
+        <tr id='week4' class="content" align="left">
+            <td>
+                <div id='date'></div>
+            </td>
+            <td>
+                <div id='my0'></div>
+            </td>
+            <td>
+                <div id='my1'></div>
+            </td>
+            <td class='accomplish'>
+                <div id='my2'></div>
+            </td>
+            <td>
+                <div id='his0'></div>
+            </td>
+            <td>
+                <div id='his1'></div>
+            </td>
+            <td class='accomplish'>
+                <div id='his2'></div>
+            </td>
+        </tr>
+        <tr id='week5' class="content" align="left">
+            <td>
+                <div id='date'></div>
+            </td>
+            <td>
+                <div id='my0'></div>
+            </td>
+            <td>
+                <div id='my1'></div>
+            </td>
+            <td class='accomplish'>
+                <div id='my2'></div>
+            </td>
+            <td>
+                <div id='his0'></div>
+            </td>
+            <td>
+                <div id='his1'></div>
+            </td>
+            <td class='accomplish'>
+                <div id='his2'></div>
+            </td>
+        </tr>
+        <tr id='week6' class="content" align="left">
+            <td>
+                <div id='date'></div>
+            </td>
+            <td>
+                <div id='my0'></div>
+            </td>
+            <td>
+                <div id='my1'></div>
+            </td>
+            <td class='accomplish'>
+                <div id='my2'></div>
+            </td>
+            <td>
+                <div id='his0'></div>
+            </td>
+            <td>
+                <div id='his1'></div>
+            </td>
+            <td class='accomplish'>
+                <div id='his2'></div>
+            </td>
+        </tr>
+        <tr id='average' class="content" align="left">
+            <td>
+                <div>평균</div>
+            </td>
+            <td colspan="3">
+                <div id='my_average'></div>
+            </td>
+            <td colspan="3">
+                <div id='his_average'></div>
+            </td>
+        </tr>
+    </table>
+    <h1 id='evaluation'></h1>
+    </div>
+    <p> ※ 친구(다른 사용자)와의 비교 기능을 원하실 경우,<br> &nbsp&nbsp&nbsp친구의 ID를 개발자에게 직접 말씀해주시면 수동으로 연결해드리겠습니다.</p>
+</body>
+
+<script>
+    var selected_friend = "";
+
+    function number_to_string(number) {
+        if (number < 10) return "0" + number;
+        else return number;
+    }
+
+    function date_to_string(date) {
+        var year = date.getFullYear();
+        var month = date.getMonth() + 1;
+        var day = date.getDate();
+        return year + "-" + number_to_string(month) + "-" + number_to_string(day);
+    }
+
+    function string_to_date(string) {
+        return new Date(string.substr(0, 4), string.substr(5, 2) - 1, string.substr(8, 2));
+    }
+
+    function set_average() {
+        var avg = 0;
+        var cnt = 0;
+        for (var i = 0; i < 7; i++) {
+            var score = $($($($('#week' + i)).children()[3]).children()[0]).text();
+            score = Number.parseInt(score);
+            if (score || score == 0) {
+                cnt++;
+                avg += score;
+            }
+        }
+        avg /= cnt;
+        if (avg) $('#my_average').text(avg.toFixed(2) + "%");
+    }
+
+    function set_table(idx, goal, accomplish, score) {
+        $($($($('#week' + idx)).children()[1]).children()[0]).text(goal);
+        $($($($('#week' + idx)).children()[2]).children()[0]).text(accomplish);
+        if (score != "") $($($($('#week' + idx)).children()[3]).children()[0]).text(score + "%");
+    }
+
+    function clear_table() {
+        for (var i = 0; i < 7; i++) {
+            for (var j = 0; j < 4; j++) {
+                $($($($('#week' + i)).children()[j]).children()[0]).text("");
+            }
+        }
+        $('#my_average').text("");
+    }
+
+    function set_friend_average() {
+        var avg = 0;
+        var cnt = 0;
+        for (var i = 0; i < 7; i++) {
+            var score = $($($($('#week' + i)).children()[6]).children()[0]).text();
+            score = Number.parseInt(score);
+            if (score || score == 0) {
+                cnt++;
+                avg += score;
+            }
+        }
+        avg /= cnt;
+        if (avg) $('#his_average').text(avg.toFixed(2) + "%");
+
+        set_color();
+    }
+
+    function set_friend_table(idx, goal, accomplish, score) {
+        $($($($('#week' + idx)).children()[4]).children()[0]).text(goal);
+        $($($($('#week' + idx)).children()[5]).children()[0]).text(accomplish);
+        if (score != "") $($($($('#week' + idx)).children()[6]).children()[0]).text(score + "%");
+    }
+
+    function clear_friend_table() {
+        for (var i = 0; i < 7; i++) {
+            for (var j = 4; j < 7; j++) {
+                $($($($('#week' + i)).children()[j]).children()[0]).text("");
+            }
+        }
+        $('#his_average').text("");
+    }
+
+    function set_color() {
+        for (var i = 0; i < 7; i++) {
+            var my_score = $($($($('#week' + i)).children()[3]).children()[0]).text();
+            if (my_score == "") continue;
+            var his_score = $($($($('#week' + i)).children()[6]).children()[0]).text();
+            if (his_score == "") continue;
+            var my_win = my_score.substr(0, my_score.length - 1) - his_score.substr(0, his_score.length - 1);
+            var my_box = $($('#week' + i)).children()[3];
+            var his_box = $($('#week' + i)).children()[6];
+            if (my_win > 0) {
+                my_box.style.backgroundColor = "#9cebaf";
+                his_box.style.backgroundColor = "#FFD2D2";
+            } else if (my_win < 0) {
+                my_box.style.backgroundColor = "#FFD2D2";
+                his_box.style.backgroundColor = "#9cebaf";
+            } else {
+                my_box.style.backgroundColor = "#9cebaf";
+                his_box.style.backgroundColor = "#9cebaf";
+            }
+        }
+
+        var my_score = $($($($('#average')).children()[1]).children()[0]).text();
+        if (my_score == "") return;
+        var his_score = $($($($('#average')).children()[2]).children()[0]).text();
+        if (his_score == "") return;
+        var my_win = my_score.substr(0, my_score.length - 1) - his_score.substr(0, his_score.length - 1);
+        var my_box = $($('#average')).children()[1];
+        var his_box = $($('#average')).children()[2];
+        var evaluation = $('#evaluation');
+        my_win = my_win.toFixed(2);
+        if (my_win > 0) {
+            my_box.style.backgroundColor = "#9cebaf";
+            his_box.style.backgroundColor = "#FFD2D2";
+            evaluation.text(`'<%=id%>'님이 '${selected_friend}'님보다 ${my_win}% 앞섭니다!`);
+        } else
+        if (my_win < 0) {
+            my_box.style.backgroundColor = "#FFD2D2";
+            his_box.style.backgroundColor = "#9cebaf";
+            evaluation.text(`'<%=id%>'님이 '${selected_friend}'님보다 ${-my_win}% 뒤쳐집니다!`);
+        } else {
+            my_box.style.backgroundColor = "#9cebaf";
+            his_box.style.backgroundColor = "#9cebaf";
+            evaluation.text(`'<%=id%>'님과 '${selected_friend}'님이 서로 막상막하네요!`);
+        }
+    }
+
+    function clear_color() {
+        for (var i = 0; i < 7; i++) {
+            var my_box = $($('#week' + i)).children()[3];
+            var his_box = $($('#week' + i)).children()[6];
+            my_box.style.backgroundColor = "white";
+            his_box.style.backgroundColor = "white";
+        }
+        var my_box = $($('#average')).children()[1];
+        var his_box = $($('#average')).children()[2];
+        my_box.style.backgroundColor = "white";
+        his_box.style.backgroundColor = "white";
+        $('#evaluation').text("");
+    }
+
+    function load_me() {
+        var load = 0;
+        clear_table();
+        var selected_date = string_to_date($('#calendar').val());
+        var date = [new Date(selected_date), new Date(selected_date), new Date(selected_date), new Date(selected_date), new Date(selected_date), new Date(selected_date), new Date(selected_date)];
+        date.forEach(function(ele, idx) {
+            ele.setDate(selected_date.getDate() - 3 + idx);
+            var name = '#week' + idx;
+            var date_str = date_to_string(ele);
+            $(name).find('#date').text(date_str);
+            $.ajax({
+                url: `/record?id=<%=id%>&date=${date_str}`,
+                data: null,
+                type: 'GET',
+                success: function(data) {
+                    load++;
+                    if (data.result.length != 0) { // DB 데이터가 있는 경우
+                        var goal = data.result[0].goal;
+                        var accomplish = data.result[0].accomplish;
+                        var score = data.result[0].score;
+                        goal = goal.replace(/<br>/gi, '\n');
+                        accomplish = accomplish.replace(/<br>/gi, '\n');
+                        set_table(idx, goal, accomplish, score);
+                    }
+                    if (load == 7) {
+                        load = 0;
+                        set_average();
+                    }
+                },
+                error: function(e) {
+                    console.log(e);
+                }
+            });
+        });
+    }
+
+    function load_friend() {
+        var load = 0;
+        clear_friend_table();
+        var selected_date = string_to_date($('#calendar').val());
+        var date = [new Date(selected_date), new Date(selected_date), new Date(selected_date), new Date(selected_date), new Date(selected_date), new Date(selected_date), new Date(selected_date)];
+        date.forEach(function(ele, idx) {
+            ele.setDate(selected_date.getDate() - 3 + idx);
+            var name = '#week' + idx;
+            var date_str = date_to_string(ele);
+            $(name).find('#date').text(date_str);
+            $.ajax({
+                url: `/record?id=${selected_friend}&date=${date_str}`,
+                data: null,
+                type: 'GET',
+                success: function(data) {
+                    load++;
+                    if (data.result.length != 0) { // DB 데이터가 있는 경우
+                        var goal = data.result[0].goal;
+                        var accomplish = data.result[0].accomplish;
+                        var score = data.result[0].score;
+                        goal = goal.replace(/<br>/gi, '\n');
+                        accomplish = accomplish.replace(/<br>/gi, '\n');
+                        set_friend_table(idx, goal, accomplish, score);
+                    }
+                    if (load == 7) {
+                        load = 0;
+                        set_friend_average();
+                    }
+                },
+                error: function(e) {
+                    console.log(e);
+                }
+            });
+        });
+    }
+
+    $('#calendar').change(function() {
+        clear_color();
+        load_me();
+        load_friend();
+    });
+
+    $(function() {
+        $('#myself').text("<%=id%>");
+
+        $('select').change(function() {
+            clear_color();
+            selected_friend = $(this).children("option:selected").val();
+            $('#friend').text(selected_friend);
+            load_friend();
+        });
+
+        $.ajax({
+            url: `/friend?id=<%=id%>`,
+            type: 'GET',
+            success: function(data) {
+                data.result.forEach(function(friend) {
+                    $('select').append(`<option>${friend.friend_id}</option>`);
+                });
+            },
+            error: function(e) {
+                console.log(e);
+            }
+        });
+
+        $('#input').click(function() {
+            window.location.href = '/input';
+        })
+
+        $('#calendar').val(date_to_string(new Date()));
+        $('#calendar').trigger('change');
+    });
+
+    // 뒤로 가기 눌렀을 때 자동 새로고침
+    window.addEventListener("pageshow", function(event) {
+        var historyTraversal = event.persisted ||
+            (typeof window.performance != "undefined" &&
+                window.performance.navigation.type === 2);
+        if (historyTraversal) {
+            // Handle page restore.
+            window.location.reload();
+        }
+    });
+</script>
+
+
+</html>
+
+</html>

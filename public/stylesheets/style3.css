@@ -1,0 +1,76 @@
+#calendar {
+    width: 40%;
+    font-size: 300%;
+    margin: 1%;
+}
+
+#contain {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 20px;
+}
+
+.title {
+    height: 40px;
+    font-size: 200%;
+}
+
+.content {
+    height: 200px;
+    text-align: center;
+}
+
+.content>td>#my0,
+#my1 {
+    display: inline-block;
+    height: 200px;
+    overflow-y: auto;
+    white-space: normal;
+    word-break: break-all;
+    width: 85%;
+    font-size: 180%;
+    resize: none;
+}
+
+.content>td>#my2 {
+    display: inline-block;
+    height: 30px;
+    overflow-y: auto;
+    white-space: normal;
+    word-break: break-all;
+    width: 50px;
+    font-size: 180%;
+    resize: none;
+}
+
+#save {
+    width: 10%;
+    margin: 15px;
+    font-size: 250%;
+    padding: 0;
+    background-color: #86ade4;
+}
+
+#back {
+    width: 17%;
+    margin: 15px;
+    padding: 0;
+    font-size: 250%;
+    background-color: #9cebaf;
+}
+
+h1 {
+    font-size: 400%;
+    margin-left: 10px;
+}
+
+#date {
+    text-align: center;
+    font-size: 150%;
+}
+
+p {
+    margin-left: 20px;
+    font-size: 180%;
+}

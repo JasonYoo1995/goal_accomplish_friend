@@ -1,0 +1,19 @@
+#title {
+    font-size: 400%;
+}
+
+input {
+    width: 50%;
+    font-size: 300%;
+    margin: 1%;
+}
+
+#contain {
+    display: flex;
+    flex-direction: column;
+}
+
+p {
+    margin-left: 20px;
+    font-size: 180%;
+}
