@@ -1,0 +1,73 @@
+h1 {
+    font-size: 400%;
+    margin-left: 2%;
+}
+
+input {
+    width: fit-content;
+    font-size: 300%;
+}
+
+select {
+    width: fit-content;
+    font-size: 300%;
+}
+
+button {
+    width: fit-content;
+    padding: 0;
+    font-size: 300%;
+    background-color: #FFD2D2;
+}
+
+.title {
+    height: 40px;
+    font-size: 200%;
+}
+
+#contain {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 3%;
+}
+
+.row>td {
+    height: 3rem;
+    align-items: center;
+}
+
+.row>td>div {
+    height: 3rem;
+    line-height: 3rem;
+    font-size: 180%;
+    overflow-y: auto;
+    text-align: center;
+}
+
+td>input {
+    font-size: 180%;
+    margin-top: 1%;
+    margin-bottom: 1%;
+    margin-left: 2%;
+    width: calc(95% - 6rem);
+}
+
+.control_td {
+    border-top: 0;
+    border-bottom: 0;
+    border-right: 0;
+}
+
+img {
+    width: 3rem;
+}
+
+#evaluation {
+    font-size: 270%;
+}
+
+.goal_td {
+    display: flex;
+    padding-left: 8px;
+}
