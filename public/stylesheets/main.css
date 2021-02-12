@@ -3,7 +3,7 @@ h1 {
     margin-left: 2%;
 }
 
-input {
+#calendar {
     width: fit-content;
     font-size: 300%;
 }
@@ -13,7 +13,7 @@ select {
     font-size: 300%;
 }
 
-button {
+#mode {
     width: fit-content;
     padding: 0;
     font-size: 300%;
@@ -33,13 +33,13 @@ button {
 }
 
 .row>td {
-    height: 3rem;
+    height: fit-content;
     align-items: center;
 }
 
 .row>td>div {
-    height: 3rem;
-    line-height: 3rem;
+    height: fit-content;
+    max-height: 10rem;
     font-size: 180%;
     overflow-y: auto;
     text-align: center;
@@ -53,12 +53,6 @@ td>input {
     width: calc(95% - 6rem);
 }
 
-.control_td {
-    border-top: 0;
-    border-bottom: 0;
-    border-right: 0;
-}
-
 img {
     width: 3rem;
 }
@@ -70,4 +64,41 @@ img {
 .goal_td {
     display: flex;
     padding-left: 8px;
+}
+
+.control_td {
+    height: 3rem;
+    line-height: 3rem;
+}
+
+.control_div {
+    vertical-align: middle;
+}
+
+.control_btn {
+    height: 2.5rem;
+    line-height: 2.5rem;
+    border-radius: 2rem;
+    font-size: 1.5rem;
+}
+
+.description {
+    height: 9rem;
+    overflow-y: auto;
+    resize: none;
+    width: 90%;
+    font-size: 100%;
+    vertical-align: middle;
+}
+
+.state>input {
+    height: 2rem;
+    font-size: 1.5rem;
+    width: 3rem;
+}
+
+.percentage>input {
+    height: 2rem;
+    font-size: 1.5rem;
+    width: 3rem;
 }
