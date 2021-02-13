@@ -11,21 +11,21 @@
 <body>
     <h1>목표 달성 기록</h1>
     <div id='contain'>
-        <div style="font-size: 300%; margin-left: 2%; margin-right: 1%;">날짜</div>
-        <input type="date" id="calendar" onkeydown="return false" min="2021-01-01" max="2100-12-31">
-        <div style="font-size: 300%; margin-left: 2%; margin-right: 1%;">친구</div>
-        <select>
+        <div style="font-size: 3rem; margin-left: 2%; margin-right: 1%;">날짜</div>
+        <input type="date" id="calendar" class='contain' onkeydown="return false" min="2021-01-01" max="2100-12-31">
+        <div style="font-size: 3rem; margin-left: 2%; margin-right: 1%;">친구</div>
+        <select class='contain'>
             <option>선택</option>
         </select>
         <button id='mode' onclick="change_mode()" style="margin-left: 2%;">수정</button>
     </div>
     <table border='1px' width='95%' cellspacing="0" cellpadding="0" style="margin-left: 2%;">
         <tr align="center" class="title">
-            <td width="7%"></td>
-            <td width="16%">목표</td>
-            <td width="5%">달성</td>
+            <td width="6%">유저</td>
+            <td width="12%">목표</td>
+            <td width="3%">달성</td>
             <td id="state_title" width="10%">실천 현황</td>
-            <td id="control_title" class='control_td' width="10%"></td>
+            <td id="control_title" class='control_td' width="14%">입력</td>
         </tr>
     </table>
     <h1 id='evaluation'></h1>
@@ -34,68 +34,114 @@
 
 <script>
     var selected_friend = "";
+
+    /* DB에 데이터가 하나도 없는 경우 */
+    // let data = [
+    //     ['-', '-']
+    // ];
+
+    /* DB에 데이터가 있는 경우 */
     let data = [
-        ['토익', '0%', 'X'],
-        ['푸쉬업', '66%', '30개/45개'],
-        ['스터디', '90%', '1234567890 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27']
+        ['토익', 'X/O', 'X'],
+        ['푸쉬업', '개', '30', '45'],
+        ['줄넘기', '회', '12', '13'],
+        ['스쿼트', '세트', '2', '4'],
+        ['(타입 선택 안 한 상태)', '-'],
+        ['긍정적인 생각', '%', '80'],
+        ['달리기', '단위입력', 'km', '0.8', '1.5'],
+        ['회의', '설명글', '100', '민덕기 교수님께서 교재 개발 내용을 보다 상세히 안내해주셨음']
     ];
+
+    let data_comment = "오늘은 그 어느 날보다도 알찬 하루였다!"
 
     // 임시 초기화
     $("#control_title").css('display', 'table-cell');
     $("#state_title").css('width', '10%');
 
     for (let i = 0; i < data.length; i++) {
-        $('table').append(make_row(i, data));
+        $('table').append(make_row("me", i, data));
     }
-    $('table').append(make_row("avg"));
+    $('table').append(make_row("me", "avg"));
 
+    /*
     for (let i = 0; i < data.length; i++) {
-        $('table').append(make_row(i, data));
+        $('table').append(make_row("friend", i, data));
     }
-    $('table').append(make_row("avg"));
+    $('table').append(make_row("friend", "avg"));
+    */
+    $('.control_btn').click(control_click);
+    $('.control_btn').click(change_percentage_color);
+    change_percentage_color();
 
     let mode = 1;
 
     function change_mode() {
+        if (mode == 2) { // 현재 수정 모드라면
+            if (input_is_empty()) return;
+        }
+
         $('tr:not(.title)').remove();
         if (mode == 1) { // 현재 조회 모드라면
+            mode = 2; // 수정 모드로 전환
             $('#mode').text("저장");
             $('#mode').css("background", "#aef1a1");
-            mode = 2; // 수정 모드로 전환
 
             $("#control_title").css('display', 'none');
             $("#state_title").css('width', '20%');
 
             for (let i = 0; i < data.length; i++) {
-                $('table').append(make_row2(i, data));
+                let ret = make_row2(i, data);
+                $('table').append(ret.table_row);
+                $($('#row' + i).find('.type_sel')).val(ret.type);
             }
             $('table').append(make_row2('plus', data));
         } else { // 현재 수정 모드라면
+            mode = 1; // 조회 모드로 전환
+
             $('#mode').text("수정");
             $('#mode').css("background", "#FFD2D2");
-            mode = 1; // 조회 모드로 전환
 
             $("#control_title").css('display', 'table-cell');
             $("#state_title").css('width', '10%');
 
             for (let i = 0; i < data.length; i++) {
-                $('table').append(make_row(i, data));
+                $('table').append(make_row("me", i, data));
             }
-            $('table').append(make_row("avg"));
-
+            $('table').append(make_row("me", "avg"));
+            /*
             for (let i = 0; i < data.length; i++) {
-                $('table').append(make_row(i, data));
+                $('table').append(make_row("friend", i, data));
             }
-            $('table').append(make_row("avg"));
+            $('table').append(make_row("friend", "avg"));
+            */
+            $('.control_btn').click(control_click);
+            $('.control_btn').click(change_percentage_color);
+            change_percentage_color();
         }
+    }
+
+    function input_is_empty() {
+        var child = $('.state_wrapper').children();
+        for (var i = 0; i < child.length; i++) { // children의 개수 = input box의 개수
+            let val = $(child[i]).val();
+            if (val == "") {
+                alert("'실천 현황'에 빈 칸이 있어서 저장할 수가 없습니다");
+                return true;
+            }
+        };
+        return false;
     }
 
     function remove(self) {
         let length = $('.row').length;
+        if (length == 1) return;
+
         let index = Number.parseInt($(self).attr('index'));
 
         let goal = $('#row' + index).find('input').val();
         if (goal != '' && !confirm(`'${goal}' 항목을 정말로 삭제하시겠습니까?`)) return;
+
+        data.splice(index, 1)
 
         // row index 감소
         for (let i = index + 1; i < length; i++) {;
@@ -142,6 +188,10 @@
         let length = $('.row').length;
         let table_row = "";
 
+        data.splice(index, 0, ['-', '-']);
+
+        let state = make_state('-');
+
         if (index == 0) { // 첫 줄에서 추가한 경우
             // 삽입할 html 내용
             table_row = `
@@ -150,13 +200,13 @@
                 <td class='goal_td'>
                     <img index=${index} class="add_goal" onclick="add(this)" src='plus.png' />
                     <img index=${index} class="remove_goal" onclick="remove(this)" src='minus.png' />
-                    <input class='goal' value="" placeholder="내용 입력" />
+                    <input class='goal' onchange="modify_goal(this)" placeholder="내용 입력" />
                 </td>
                 <td>
-                    <div class='percentage'></div>
+                    <div class='percentage'>-</div>
                 </td>
                 <td>
-                    <div class='state'></div>
+                    <div class='state'>${state}</div>
                 </td>
             </tr>
         `;
@@ -169,13 +219,13 @@
                 <td class='goal_td'>
                     <img index=${index} class="add_goal" onclick="add(this)" src='plus.png' />
                     <img index=${index} class="remove_goal" onclick="remove(this)" src='minus.png' />
-                    <input class='goal' value="" placeholder="내용 입력" />
+                    <input class='goal' onchange="modify_goal(this)" placeholder="내용 입력" />
                 </td>
                 <td>
-                    <div class='percentage'></div>
+                    <div class='percentage'>-</div>
                 </td>
                 <td>
-                    <div class='state'></div>
+                    <div class='state'>${state}</div>
                 </td>
             </tr>
         `;
@@ -217,8 +267,165 @@
         $(td_).attr('rowspan', span);
     }
 
+    function change_percentage_color() {
+        $('.percentage').each(function(index, item) {
+            let val = $(item).html();
+            if (val == '-') return;
+
+            let p = $(item).parent();
+            val = Number.parseInt(val.substr(0, val.length - 1));
+            if (val < 30) {
+                p.css("background", "#FFD2D2");
+            } else if (val < 70) {
+                p.css("background", "#FFFF9B");
+            } else {
+                p.css("background", "#aef1a1");
+            }
+        });
+    }
+
+    function modify_goal(self) {
+        let p = $(self).parent();
+        let img = $(p).children()[0];
+        let index = $(img).attr('index');
+        data[index][0] = $(self).val();
+    }
+
+    function modify_state(self) {
+        let type = $(self).val();
+        let p = $(self).parent();
+        let pp = $(p).parent();
+        let ppp = $(pp).parent();
+        let pppp = $(ppp).parent();
+        let img = $(pppp).find('img');
+        let index = $(img).attr('index');
+
+        // state 초기화
+        let state = make_initial_state(type);
+        $(pp).find('.state_wrapper').html(state);
+
+        let goal = data[index][0];
+        if (type == "-") { // goal 비우기
+            data[index] = ['', '-'];
+            let input = $(pppp).find('.goal');
+            $(input).val("");
+        } else if (type == "X/O") {
+            data[index] = [goal, 'X/O', 'X'];
+        } else if (type == "개") {
+            data[index] = [goal, '개', '0', ''];
+        } else if (type == "회") {
+            data[index] = [goal, '회', '0', ''];
+        } else if (type == "세트") {
+            data[index] = [goal, '세트', '0', ''];
+        } else if (type == "%") {
+            data[index] = [goal, '%', '0'];
+        } else if (type == "단위입력") {
+            data[index] = [goal, '단위입력', '', '0', ''];
+        } else if (type == "설명글") {
+            data[index] = [goal, '설명글', '0', ''];
+        }
+    }
+
+    function modify_input(self, kind) {
+        let p = $(self).parent();
+        let pp = $(p).parent();
+        let ppp = $(pp).parent();
+        let pppp = $(ppp).parent();
+        let img = $(pppp).find('img');
+        let index = $(img).attr('index');
+        let select = $(pp).find('.type_sel');
+        let type = $(select).val();
+
+        let goal = data[index][0];
+        if (type == "개") {
+            let val = data[index][2];
+            data[index] = [goal, '개', val, $(self).val()];
+        } else if (type == "회") {
+            let val = data[index][2];
+            data[index] = [goal, '회', val, $(self).val()];
+        } else if (type == "세트") {
+            let val = data[index][2];
+            data[index] = [goal, '세트', val, $(self).val()];
+        } else if (type == "단위입력") {
+            if (kind == 0) { // 최대값 바꾸기
+                let unit = data[index][2];
+                let val = data[index][3];
+                data[index] = [goal, '단위입력', unit, val, $(self).val()];
+            } else if (kind == 1) { // 단위 바꾸기
+                let val = data[index][3];
+                let maxim = data[index][4];
+                data[index] = [goal, '단위입력', $(self).val(), val, maxim];
+            }
+        }
+    }
+
+    function make_initial_state(type) {
+        let state = "";
+        if (type == "-") {
+            state += "-";
+        } else if (type == "X/O") {
+            state += `X`;
+        } else if (type == "개") {
+            state += `0개 / <input onchange="modify_input(this)" /> 개`;
+        } else if (type == "회") {
+            state += `0회 / <input onchange="modify_input(this)" /> 회`;
+        } else if (type == "세트") {
+            state += `0세트 / <input onchange="modify_input(this)" /> 세트`;
+        } else if (type == "%") {
+            state += `0% / 100%`;
+        } else if (type == "단위입력") {
+            state += `0 / <input onchange = "modify_input(this, 0)" placeholder="값"/>\
+                          <input onchange = "modify_input(this, 1)" placeholder="단위" /> `;
+        } else if (type == "설명글") {
+            state += `0% / 100%`;
+        }
+        return state;
+    }
+
+    function make_state(type, val) {
+        let wrapper = "";
+        wrapper += `
+            <div class="type_sel_wrapper">\
+                <select class='type_sel' onchange="modify_state(this)">\
+                    <option value='-'>-</option>\
+                    <option value='X/O'>X/O</option>\
+                    <option value='개'>개</option>\
+                    <option value='회'>회</option>\
+                    <option value='세트'>세트</option>\
+                    <option value='%'>%</option>\
+                    <option value='단위입력'>단위입력</option>\
+                    <option value='설명글'>설명글</option>\
+                </select>\
+            </div>
+            `
+
+        let state_content = "";
+        if (type == "-") {
+            state_content += "-";
+        } else if (type == "X/O") {
+            state_content += `${val[2]}`;
+        } else if (type == "개") {
+            state_content += `${val[2]}개 / <input value=${val[3]} onchange="modify_input(this)" /> 개`;
+        } else if (type == "회") {
+            state_content += `${val[2]}회 / <input value=${val[3]} onchange="modify_input(this)" /> 회`;
+        } else if (type == "세트") {
+            state_content += `${val[2]}세트 / <input value=${val[3]} onchange="modify_input(this)" /> 세트`;
+        } else if (type == "%") {
+            state_content += `${val[2]}% / 100%`;
+        } else if (type == "단위입력") {
+            state_content += `${val[3]} / <input value=${val[4]} onchange="modify_input(this, 0)" placeholder="값"/>\
+                                          <input value=${val[2]} onchange="modify_input(this, 1)" placeholder="단위" /> `;
+        } else if (type == "설명글") {
+            state_content += `${val[2]}% / 100%`;
+        }
+        wrapper += `<div class="state_wrapper">${state_content}</div>`;
+
+        return wrapper;
+    }
+
     function make_row2(index, data) {
         let table_row;
+
         if (index == 'plus') {
             table_row = `
             <tr id='plus'>
@@ -230,20 +437,28 @@
                 <td colspan='2' style='border-left: 0px;'></td>
             </tr>
             `;
-        } else if (index == 0) {
+            return table_row;
+        }
+
+        let goal, percentage, state = "";
+        let type = data[index][1];
+        goal = data[index][0];
+        state += make_state(type, data[index]);
+
+        if (index == 0) {
             table_row = `
             <tr id='row${index}' class="row">
                 <td id='name' rowspan='${data.length + 1}'></td>
                 <td class='goal_td'>
                     <img index=${index} class="add_goal" onclick="add(this)" src='plus.png' />
                     <img index=${index} class="remove_goal" onclick="remove(this)" src='minus.png' />
-                    <input class='goal' value="${data[index][0]}" placeholder="내용 입력" />
+                    <input class='goal' value="${goal}" onchange="modify_goal(this)" placeholder="내용 입력" />
                 </td>
                 <td>
-                    <div class='percentage'>${data[index][1]}</div>
+                    <div class='percentage'>-</div>
                 </td>
                 <td>
-                    <div class='state'>${data[index][2]}</div>
+                    <div class='state'>${state}</div>
                 </td>
             </tr>
             `;
@@ -253,71 +468,330 @@
                 <td class='goal_td'>
                     <img index=${index} class="add_goal" onclick="add(this)" src='plus.png' />
                     <img index=${index} class="remove_goal" onclick="remove(this)" src='minus.png' />
-                    <input class='goal' value="${data[index][0]}" placeholder="내용 입력" />
+                    <input class='goal' value="${goal}" onchange="modify_goal(this)" placeholder="내용 입력" />
                 </td>
                 <td>
-                    <div class='percentage'>${data[index][1]}</div>
+                    <div class='percentage'>-</div>
                 </td>
                 <td>
-                    <div class='state'>${data[index][2]}</div>
+                    <div class='state'>${state}</div>
                 </td>
             </tr>
         `;
         }
-        return table_row;
+        return {
+            table_row: table_row,
+            type: type
+        };
     }
 
-    function make_row(index, data) {
+    function control_click() {
+        let div = $(this).parent();
+        let td = $(div).parent();
+        let tr = $(td).parent();
+        let index = $(tr).attr("index");
+        let btn = $(this).text();
+
+        if (index == 'avg') {
+            if (btn == "커멘트 수정") {
+                $(this).css("background", "#aef1a1");
+                $(this).text("커멘트 저장");
+                let val = $($(tr).find('.state')).text();
+                let textarea = `<textarea class='description' placeholder="내용 입력" />`;
+                $($(tr).find('.state')).html(textarea);
+                $($(tr).find('textarea')).val(val);
+            } else if (btn == "커멘트 저장") {
+                $(this).css("background", "#FFD2D2");
+                $(this).text("커멘트 수정");
+                let val = $($(tr).find('textarea')).val();
+                $($(tr).find('textarea')).remove();
+                data_comment = val;
+                $($(tr).find('.state')).text(data_comment);
+            }
+            return;
+        }
+
+        let type = data[index][1];
+        let percentage;
+        let state;
+        if (type == "X/O") {
+            if (btn == "미완료") {
+                data[index][2] = "X";
+                percentage = 0;
+            } else if (btn == "완료") {
+                data[index][2] = "O";
+                percentage = 100;
+            }
+            state = data[index][2];
+        } else if (type == "개" || type == "회" || type == "세트") {
+            let val;
+            if (btn == "-5") {
+                val = Number.parseInt(data[index][2]) - 5;
+            } else if (btn == "-1") {
+                val = Number.parseInt(data[index][2]) - 1;
+            } else if (btn == "+1") {
+                val = Number.parseInt(data[index][2]) + 1;
+            } else if (btn == "+5") {
+                val = Number.parseInt(data[index][2]) + 5;
+            }
+            if (val <= 0) val = 0;
+            data[index][2] = val;
+            percentage = (data[index][2] / data[index][3] * 100).toFixed(1);
+            state = `${data[index][2]+type} / ${data[index][3]+type}`;
+        } else if (type == "%") {
+            let val;
+            if (btn == "-30") {
+                val = Number.parseInt(data[index][2]) - 30;
+            } else if (btn == "-10") {
+                val = Number.parseInt(data[index][2]) - 10;
+            } else if (btn == "+10") {
+                val = Number.parseInt(data[index][2]) + 10;
+            } else if (btn == "+30") {
+                val = Number.parseInt(data[index][2]) + 30;
+            }
+            if (val <= 0) val = 0;
+            if (val >= 100) val = 100;
+            data[index][2] = val;
+            percentage = val;
+            state = val + type;
+        } else if (type == "단위입력") {
+            if (btn == "수정") {
+                $(this).css("background", "#aef1a1");
+                $(this).text("저장");
+                let input = `<input/>`;
+                state = `${data[index][2]} / ${data[index][4]}${data[index][2]}`;
+                $($(tr).find('.state')).html(input + state);
+                $($(tr).find('input')).val(data[index][3]);
+                return;
+            } else if (btn == "저장") {
+                $(this).css("background", "#FFD2D2");
+                $(this).text("수정");
+                let val = $($(tr).find('input')).val();
+                $($(tr).find('input')).remove();
+                if (val <= 0) val = 0;
+                data[index][3] = val;
+                percentage = (data[index][3] / data[index][4] * 100).toFixed(1);
+                state = `${data[index][3]}${data[index][2]} / ${data[index][4]}${data[index][2]}`;
+            }
+        } else if (type == "설명글") {
+            // button name 처리
+            if (btn == "수정") {
+                $(this).css("background", "#aef1a1");
+                $(this).text("저장");
+            } else if (btn == "저장") {
+                $(this).css("background", "#FFD2D2");
+                $(this).text("수정");
+            }
+
+            // percentage 처리
+            if (btn == "수정") {
+                state = data[index][2];
+                let input = `<input />`;
+                $($(tr).find('.percentage')).html(input + "%");
+                $($(tr).find('input')).val(state);
+            } else if (btn == "저장") {
+                let val = $($(tr).find('input')).val();
+                $($(tr).find('input')).remove();
+                if (val <= 0) val = 0;
+                if (val >= 100) val = 100;
+                data[index][2] = val;
+                percentage = val;
+            }
+
+            // state 처리
+            if (btn == "수정") {
+                let textarea = `<textarea class='description'/>`;
+                $($(tr).find('.state')).html(textarea);
+                $($(tr).find('textarea')).val(data[index][3]);
+                return;
+            } else if (btn == "저장") {
+                let val = $($(tr).find('textarea')).val();
+                $($(tr).find('textarea')).remove();
+                data[index][3] = val;
+                state = data[index][3];
+            }
+        }
+        if (percentage <= 0) percentage = 0;
+        if (percentage >= 100) percentage = 100;
+        $($(tr).find('.percentage')).text(percentage + '%');
+        $($(tr).find('.state')).text(state);
+
+        // me OR friend
+        let p = $(this).parent();
+        let pp = $(p).parent();
+        let ppp = $(pp).parent();
+        let user;
+        let class_me = $(ppp).hasClass("me");
+        if (class_me) user = "me";
+        else user = "friend";
+
+        // 평균 계산
+        let nan = 0;
+        let avg = 0;
+        $('.' + user).each(function() {
+            let val = $($(this).find('.percentage')).text();
+            if (val == '-') {
+                nan++;
+                return;
+            };
+            avg += Number.parseFloat(val.substr(0, val.length - 1));
+        });
+        avg /= $('.' + user).length - nan;
+        avg = avg.toFixed(1);
+
+        if (avg <= 0) avg = 0;
+        if (avg >= 100) avg = 100;
+        $($('#avg_' + user).find(".percentage")).text(avg + '%');
+    }
+
+    function make_row(user, index, data) {
+        let type, goal, percentage, state, control;
+        if (index != 'avg') {
+            type = data[index][1];
+            goal = data[index][0];
+            if (type == "-") {
+                state = "-";
+                control = "-";
+            } else if (type == "X/O") {
+                state = data[index][2];
+                if (data[index][2] == 'X') percentage = 0;
+                else if (data[index][2] == 'O') percentage = 100;
+                control = `
+                <button class='control_btn'>미완료</button>
+                <button class='control_btn'>완료</button>
+                `;
+            } else if (type == "개") {
+                state = `${data[index][2]}개 / ${data[index][3]}개`;
+                let val = data[index][2] / data[index][3] * 100;
+                percentage = val.toFixed(1);
+                control = `
+                <button class='control_btn'>-5</button>
+                <button class='control_btn'>-1</button>
+                <button class='control_btn'>+1</button>
+                <button class='control_btn'>+5</button>
+                `;
+            } else if (type == "회") {
+                state = `${data[index][2]}회 / ${data[index][3]}회`;
+                let val = data[index][2] / data[index][3] * 100;
+                percentage = val.toFixed(1);
+                control = `
+                <button class='control_btn'>-5</button>
+                <button class='control_btn'>-1</button>
+                <button class='control_btn'>+1</button>
+                <button class='control_btn'>+5</button>
+                `;
+            } else if (type == "세트") {
+                state = `${data[index][2]}세트 / ${data[index][3]}세트`;
+                let val = data[index][2] / data[index][3] * 100;
+                percentage = val.toFixed(1);
+                control = `
+                <button class='control_btn'>-5</button>
+                <button class='control_btn'>-1</button>
+                <button class='control_btn'>+1</button>
+                <button class='control_btn'>+5</button>
+                `;
+            } else if (type == "%") {
+                state = `${data[index][2]}%`;
+                percentage = data[index][2];
+                control = `
+                <button class='control_btn'>-30</button>
+                <button class='control_btn'>-10</button>
+                <button class='control_btn'>+10</button>
+                <button class='control_btn'>+30</button>
+                `;
+            } else if (type == "단위입력") {
+                state = `${data[index][3]}${data[index][2]} / ${data[index][4]}${data[index][2]}`;
+                let val = data[index][3] / data[index][4] * 100;
+                percentage = val.toFixed(1);
+                control = `
+                <button class='control_btn' style="background: #FFD2D2;">수정</button>
+                `;
+            } else if (type == "설명글") {
+                state = `${data[index][3]}`;
+                percentage = data[index][2];
+                control = `
+                <button class='control_btn' style="background: #FFD2D2;">수정</button>
+                `;
+            }
+        } else {
+            // 평균 계산
+            let rows = $('.' + user).length;
+            let nan = 0;
+            let avg = 0;
+            $('.' + user).each(function() {
+                let val = $($(this).find('.percentage')).text();
+                if (val == '-') {
+                    nan++;
+                    return;
+                };
+                avg += Number.parseFloat(val.substr(0, val.length - 1));
+            });
+
+            if (nan == rows) avg = 0; // 숫자가 하나도 없을 때
+            else {
+                avg /= rows - nan;
+                avg = avg.toFixed(1);
+            }
+            percentage = avg;
+        }
+
+        if (percentage <= 0) percentage = 0;
+        if (percentage >= 100) percentage = 100;
+        if (type == "-") percentage = "-";
+        else percentage = percentage + '%';
+
         let table_row;
         if (index == 'avg') {
             table_row = `
-            <tr id='avg' class="row">
+            <tr id='avg_${user}' class="row avg" index="avg">
                 <td>
-                    <div class='goal'>계산</div>
+                    <div class='goal'>종합</div>
                 </td>
                 <td>
-                    <div class='percentage'>계산</div>
+                    <div class='percentage'>${percentage}</div>
                 </td>
                 <td>
-                    <div class='state'>계산</div>
+                    <div class='state comment_div new_line'>${data_comment}</div>
                 </td>
                 <td class='control_td'>
-                    <div class='control'></div>
+                    <div class='control_div'>
+                        <button class='control_btn' style="background: #FFD2D2;">커멘트 수정</button>
+                    </div>
                 </td>
             </tr>
             `;
         } else if (index == 0) {
             table_row = `
-            <tr id='row${index}' class="row">
+            <tr id='row${index}' class="row ${user}" index="${index}">
                 <td id='name' rowspan='${data.length + 1}'></td>
                 <td>
-                    <div class='goal'>${data[index][0]}</div>
+                    <div class='goal'>${goal}</div>
                 </td>
                 <td>
-                    <div class='percentage'>${data[index][1]}</div>
+                    <div class='percentage'>${percentage}</div>
                 </td>
                 <td>
-                    <div class='state'>${data[index][2]}</div>
+                    <div class='state new_line'>${state}</div>
                 </td>
                 <td class='control_td'>
-                    <div class='control'></div>
+                    <div class='control_div'>${control}</div>
                 </td>
             </tr>
             `;
         } else {
             table_row = `
-            <tr id='row${index}' class="row">
+            <tr id='row${index}' class="row ${user}" index="${index}">
                 <td>
-                    <div class='goal'>${data[index][0]}</div>
+                    <div class='goal'>${goal}</div>
                 </td>
                 <td>
-                    <div class='percentage'>${data[index][1]}</div>
+                    <div class='percentage'>${percentage}</div>
                 </td>
                 <td>
-                    <div class='state'>${data[index][2]}</div>
+                    <div class='state new_line'>${state}</div>
                 </td>
                 <td class='control_td'>
-                    <div class='control'></div>
+                    <div class='control_div'>${control}</div>
                 </td>
             </tr>
         `;
@@ -569,6 +1043,8 @@
     $('#calendar').trigger('change');
     */
 </script>
+
+</html>
 
 </html>
 
