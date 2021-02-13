@@ -1,31 +1,31 @@
 h1 {
-    font-size: 400%;
+    font-size: 4rem;
     margin-left: 2%;
 }
 
-#calendar {
+.contain {
+    height: fit-content;
     width: fit-content;
-    font-size: 300%;
-}
-
-select {
-    width: fit-content;
-    font-size: 300%;
+    font-size: 3rem;
 }
 
 #mode {
     width: fit-content;
     padding: 0;
-    font-size: 300%;
+    line-height: 0;
+    height: 3.5rem;
+    font-size: 3rem;
     background-color: #FFD2D2;
 }
 
 .title {
-    height: 40px;
-    font-size: 200%;
+    font-size: 2rem;
+    font-weight: bold;
 }
 
 #contain {
+    line-height: 3rem;
+    height: 3rem;
     width: 100%;
     display: flex;
     flex-direction: row;
@@ -39,9 +39,7 @@ select {
 
 .row>td>div {
     height: fit-content;
-    max-height: 10rem;
     font-size: 180%;
-    overflow-y: auto;
     text-align: center;
 }
 
@@ -50,7 +48,8 @@ td>input {
     margin-top: 1%;
     margin-bottom: 1%;
     margin-left: 2%;
-    width: calc(95% - 6rem);
+    margin-right: 2%;
+    width: calc(96% - 6rem);
 }
 
 img {
@@ -80,15 +79,12 @@ img {
     line-height: 2.5rem;
     border-radius: 2rem;
     font-size: 1.5rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
 }
 
-.description {
-    height: 9rem;
-    overflow-y: auto;
-    resize: none;
-    width: 90%;
-    font-size: 100%;
-    vertical-align: middle;
+.new_line {
+    white-space: pre-wrap;
 }
 
 .state>input {
@@ -97,8 +93,50 @@ img {
     width: 3rem;
 }
 
+.state>div>input {
+    height: 2rem;
+    font-size: 1.5rem;
+    width: 3rem;
+}
+
+.state_wrapper {
+    float: left;
+    width: fit-content;
+    line-height: 3rem;
+    height: 3rem;
+    margin-left: 4%;
+}
+
+.type_sel {
+    width: 100%;
+    font-size: 1.8rem;
+}
+
+.type_sel_wrapper {
+    float: left;
+    margin-left: 2%;
+    width: 10rem;
+    line-height: 3rem;
+    height: 3rem;
+}
+
 .percentage>input {
     height: 2rem;
     font-size: 1.5rem;
     width: 3rem;
+}
+
+input:not(#calendar),
+textarea {
+    border-width: medium;
+}
+
+textarea {
+    margin-top: 4%;
+    margin-bottom: 4%;
+    width: 80%;
+    height: 7.5rem;
+    resize: none;
+    font-size: 2rem;
+    vertical-align: middle;
 }
