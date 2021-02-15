@@ -17,7 +17,8 @@
         <select class='contain'>
             <option>선택</option>
         </select>
-        <button id='mode' onclick="change_mode()" style="margin-left: 2%;">수정</button>
+        <button id='mode' onclick="change_mode(0)" style="margin-left: 2%;">수정</button>
+        <button id='cancel' style="display: none;" onclick="change_mode(1)">취소</button>
     </div>
     <table border='1px' width='95%' cellspacing="0" cellpadding="0" style="margin-left: 2%;">
         <tr align="center" class="title">
@@ -51,6 +52,7 @@
         ['달리기', '단위입력', 'km', '0.8', '1.5'],
         ['회의', '설명글', '100', '민덕기 교수님께서 교재 개발 내용을 보다 상세히 안내해주셨음']
     ];
+    let temp_data = [];
 
     let data_comment = "오늘은 그 어느 날보다도 알찬 하루였다!"
 
@@ -69,20 +71,28 @@
     }
     $('table').append(make_row("friend", "avg"));
     */
+
     $('.control_btn').click(control_click);
     $('.control_btn').click(change_percentage_color);
     change_percentage_color();
 
     let mode = 1;
 
-    function change_mode() {
-        if (mode == 2) { // 현재 수정 모드라면
+    function change_mode(cancel) {
+        if (mode == 2 && cancel == 0) { // 저장 버튼을 눌렀다면
             if (input_is_empty()) return;
         }
-
         $('tr:not(.title)').remove();
         if (mode == 1) { // 현재 조회 모드라면
             mode = 2; // 수정 모드로 전환
+
+            for (var i = 0; i < data.length; i++) {
+                temp_data[i] = data[i].slice(); // 깊은 복사
+            }
+
+            $('#cancel').css('display', 'inline-block');
+            $('#cancel').css('margin-left', '2%');
+
             $('#mode').text("저장");
             $('#mode').css("background", "#aef1a1");
 
@@ -97,6 +107,13 @@
             $('table').append(make_row2('plus', data));
         } else { // 현재 수정 모드라면
             mode = 1; // 조회 모드로 전환
+            if (cancel == 0) { // 저장 버튼을 눌렀다면
+                for (var i = 0; i < data.length; i++) {
+                    data[i] = temp_data[i].slice(); // 깊은 복사
+                }
+            }
+
+            $('#cancel').css('display', 'none');
 
             $('#mode').text("수정");
             $('#mode').css("background", "#FFD2D2");
@@ -141,7 +158,7 @@
         let goal = $('#row' + index).find('input').val();
         if (goal != '' && !confirm(`'${goal}' 항목을 정말로 삭제하시겠습니까?`)) return;
 
-        data.splice(index, 1)
+        temp_data.splice(index, 1)
 
         // row index 감소
         for (let i = index + 1; i < length; i++) {;
@@ -188,7 +205,7 @@
         let length = $('.row').length;
         let table_row = "";
 
-        data.splice(index, 0, ['-', '-']);
+        temp_data.splice(index, 0, ['-', '-']);
 
         let state = make_state('-');
 
@@ -288,7 +305,7 @@
         let p = $(self).parent();
         let img = $(p).children()[0];
         let index = $(img).attr('index');
-        data[index][0] = $(self).val();
+        temp_data[index][0] = $(self).val();
     }
 
     function modify_state(self) {
@@ -304,25 +321,25 @@
         let state = make_initial_state(type);
         $(pp).find('.state_wrapper').html(state);
 
-        let goal = data[index][0];
+        let goal = temp_data[index][0];
         if (type == "-") { // goal 비우기
-            data[index] = ['', '-'];
+            temp_data[index] = ['', '-'];
             let input = $(pppp).find('.goal');
             $(input).val("");
         } else if (type == "X/O") {
-            data[index] = [goal, 'X/O', 'X'];
+            temp_data[index] = [goal, 'X/O', 'X'];
         } else if (type == "개") {
-            data[index] = [goal, '개', '0', ''];
+            temp_data[index] = [goal, '개', '0', ''];
         } else if (type == "회") {
-            data[index] = [goal, '회', '0', ''];
+            temp_data[index] = [goal, '회', '0', ''];
         } else if (type == "세트") {
-            data[index] = [goal, '세트', '0', ''];
+            temp_data[index] = [goal, '세트', '0', ''];
         } else if (type == "%") {
-            data[index] = [goal, '%', '0'];
+            temp_data[index] = [goal, '%', '0'];
         } else if (type == "단위입력") {
-            data[index] = [goal, '단위입력', '', '0', ''];
+            temp_data[index] = [goal, '단위입력', '', '0', ''];
         } else if (type == "설명글") {
-            data[index] = [goal, '설명글', '0', ''];
+            temp_data[index] = [goal, '설명글', '0', ''];
         }
     }
 
@@ -336,25 +353,25 @@
         let select = $(pp).find('.type_sel');
         let type = $(select).val();
 
-        let goal = data[index][0];
+        let goal = temp_data[index][0];
         if (type == "개") {
-            let val = data[index][2];
-            data[index] = [goal, '개', val, $(self).val()];
+            let val = temp_data[index][2];
+            temp_data[index] = [goal, '개', val, $(self).val()];
         } else if (type == "회") {
-            let val = data[index][2];
-            data[index] = [goal, '회', val, $(self).val()];
+            let val = temp_data[index][2];
+            temp_data[index] = [goal, '회', val, $(self).val()];
         } else if (type == "세트") {
-            let val = data[index][2];
-            data[index] = [goal, '세트', val, $(self).val()];
+            let val = temp_data[index][2];
+            temp_data[index] = [goal, '세트', val, $(self).val()];
         } else if (type == "단위입력") {
             if (kind == 0) { // 최대값 바꾸기
-                let unit = data[index][2];
-                let val = data[index][3];
-                data[index] = [goal, '단위입력', unit, val, $(self).val()];
+                let unit = temp_data[index][2];
+                let val = temp_data[index][3];
+                temp_data[index] = [goal, '단위입력', unit, val, $(self).val()];
             } else if (kind == 1) { // 단위 바꾸기
-                let val = data[index][3];
-                let maxim = data[index][4];
-                data[index] = [goal, '단위입력', $(self).val(), val, maxim];
+                let val = temp_data[index][3];
+                let maxim = temp_data[index][4];
+                temp_data[index] = [goal, '단위입력', $(self).val(), val, maxim];
             }
         }
     }

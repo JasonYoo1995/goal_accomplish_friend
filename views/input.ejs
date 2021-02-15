@@ -180,12 +180,14 @@
                 var goal = $($($(ele).children()[1]).children()[0]).val();
                 var accomplish = $($($(ele).children()[2]).children()[0]).val();
                 var score = $($($(ele).children()[3]).children()[0]).val();
-                goal = goal.replace(/\%/gi, '%25');
+                goal = goal.replace(/%/gi, '%25');
                 goal = goal.replace(/\n/gi, '<br>');
                 goal = goal.replace(/\+/gi, '%2B');
+                goal = goal.replace(/'/gi, '\'\'');
                 accomplish = accomplish.replace(/%/gi, '%25');
                 accomplish = accomplish.replace(/\n/gi, '<br>');
                 accomplish = accomplish.replace(/\+/gi, '%2B');
+                accomplish = accomplish.replace(/'/gi, '\'\'');
 
                 if (save == false) return;
 

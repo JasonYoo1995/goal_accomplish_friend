@@ -18,6 +18,15 @@ h1 {
     background-color: #FFD2D2;
 }
 
+#cancel {
+    width: fit-content;
+    padding: 0;
+    line-height: 0;
+    height: 3.5rem;
+    font-size: 3rem;
+    background-color: hsl(230, 90%, 84%);
+}
+
 .title {
     font-size: 2rem;
     font-weight: bold;
