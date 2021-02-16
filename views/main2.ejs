@@ -18,7 +18,7 @@
             <option>선택</option>
         </select>
         <button id='mode' onclick="change_mode(0)" style="margin-left: 2%;">수정</button>
-        <button id='cancel' style="display: none;" onclick="change_mode(1)">취소</button>
+        <button id='cancel' onclick="change_mode(1)" style="display: none;">취소</button>
     </div>
     <table border='1px' width='95%' cellspacing="0" cellpadding="0" style="margin-left: 2%;">
         <tr align="center" class="title">
@@ -36,33 +36,36 @@
 <script>
     var selected_friend = "";
 
-    /* DB에 데이터가 하나도 없는 경우 */
+    /* DB에 데이터가 0개인 경우는 일부러 ['-', '-']로 채워넣어야 함*/
     let data = [
         ['-', '-']
     ];
-
-    /* DB에 데이터가 있는 경우 */
-    // let data = [
-    //     ['토익', 'X/O', 'X', , ],
-    //     ['푸쉬업', '개', '30', '45', ],
-    //     ['줄넘기', '회', '12', '13', ],
-    //     ['스쿼트', '세트', '2', '4', ],
-    //     ['(타입 선택 안 한 상태)', '-', , , ],
-    //     ['긍정적인 생각', '%', '80', , ],
-    //     ['달리기', '단위입력', 'km', '0.8', '1.5'],
-    //     ['회의', '설명글', '100', '민덕기 교수님께서 교재 개발 내용을 보다 상세히 안내해주셨음', ]
-    // ];
-
-    let data_comment = "오늘은 그 어느 날보다도 알찬 하루였다!"
-
+    let data_comment = "";
     let temp_data = [];
-
     let mode = 1;
 
     $('#calendar').val(date_to_string(new Date()));
     $('#calendar').trigger('change');
 
     retrieve_content_db();
+
+    function retrieve_comment_db() {
+        let date = $('#calendar').val();
+        $.ajax({
+            url: `/comment?id=<%=id%>&date=${date}`,
+            type: 'GET',
+            success: function(result) {
+                data_comment = result.result[0].comment;
+                /* DB 데이터 샘플 */
+                // data_comment = "오늘은 그 어느 날보다도 알찬 하루였다!"
+
+                retrieve_mode();
+            },
+            error: function(e) {
+                console.log(e);
+            }
+        });
+    }
 
     function retrieve_content_db() {
         let date = $('#calendar').val();
@@ -73,7 +76,21 @@
                 $(result.result).each(function(index, item) {
                     data[index] = [item.goal, item.type, item.data1, item.data2.replace(/<br>/gi, '\n'), item.data3];
                 });
-                retrieve_mode();
+
+                /* DB 데이터 샘플 */
+                // data = [
+                //     ['8시 기상', 'X/O', 'X', , ],
+                //     ['푸쉬업', '개', '30', '45', ],
+                //     ['복근 운동', '회', '20', '60', ],
+                //     ['스쿼트', '세트', '2', '5', ],
+                //     ['(단위 미선택)', '-', , , ],
+                //     ['토익 리딩 141~200번', '단위입력', '번', '15', '60'],
+                //     ['달리기', '단위입력', 'km', '0.8', '1.5'],
+                //     ['회의', '설명글', '100', '민덕기 교수님께서 교재 개발 내용을 보다 상세히 안내해주셨음', ],
+                //     ['긍정적인 생각', '%', '80', , ],
+                // ];
+
+                retrieve_comment_db();
             },
             error: function(e) {
                 console.log(e);
@@ -161,7 +178,15 @@
         return false;
     }
 
+    function input_size_check(self, size = 300) {
+        if ($(self).val().length > size) {
+            alert('허용된 글자 길이를 초과하였습니다.')
+            $(self).val($(self).val().substr(0, size));
+        }
+    }
+
     function replace_char(str) {
+        if (str == undefined) return "";
         str = str.replace(/%/gi, '%25');
         str = str.replace(/\n/gi, '<br>');
         str = str.replace(/\+/gi, '%2B');
@@ -189,7 +214,7 @@
                     if (length >= 5) data3 = replace_char(temp_data[index][4]);
                     $.ajax({
                         url: `/content?id=<%=id%>&date=${date}&index=${index}&goal=${goal}&type=${type}&data1=${data1}&data2=${data2}&data3=${data3}`,
-                        type: 'PUT',
+                        type: 'POST',
                         success: function(result) {},
                         error: function(e) {}
                     });
@@ -203,7 +228,10 @@
 
     function remove(self) {
         let length = $('.row').length;
-        if (length == 1) return;
+        if (length == 1) {
+            alert("더 이상 삭제할 수 없습니다.");
+            return;
+        }
 
         let index = Number.parseInt($(self).attr('index'));
 
@@ -271,7 +299,7 @@
                 <td class='goal_td'>
                     <img index=${index} class="add_goal" onclick="add(this)" src='plus.png' />
                     <img index=${index} class="remove_goal" onclick="remove(this)" src='minus.png' />
-                    <input class='goal' onchange="modify_goal(this)" placeholder="내용 입력" />
+                    <input class='goal' onchange="modify_goal(this); input_size_check(this, 20);" placeholder="내용 입력" />
                 </td>
                 <td>
                     <div class='percentage'>-</div>
@@ -290,7 +318,7 @@
                 <td class='goal_td'>
                     <img index=${index} class="add_goal" onclick="add(this)" src='plus.png' />
                     <img index=${index} class="remove_goal" onclick="remove(this)" src='minus.png' />
-                    <input class='goal' onchange="modify_goal(this)" placeholder="내용 입력" />
+                    <input class='goal' onchange="modify_goal(this); input_size_check(this, 20);" placeholder="내용 입력" />
                 </td>
                 <td>
                     <div class='percentage'>-</div>
@@ -437,16 +465,16 @@
         } else if (type == "X/O") {
             state += `X`;
         } else if (type == "개") {
-            state += `0개 / <input onchange="modify_input(this)" /> 개`;
+            state += `0개 / <input onchange="modify_input(this); input_size_check(this, 9);" /> 개`;
         } else if (type == "회") {
-            state += `0회 / <input onchange="modify_input(this)" /> 회`;
+            state += `0회 / <input onchange="modify_input(this; input_size_check(this, 9);)" /> 회`;
         } else if (type == "세트") {
-            state += `0세트 / <input onchange="modify_input(this)" /> 세트`;
+            state += `0세트 / <input onchange="modify_input(this); input_size_check(this, 9);" /> 세트`;
         } else if (type == "%") {
             state += `0% / 100%`;
         } else if (type == "단위입력") {
-            state += `0 / <input onchange = "modify_input(this, 0)" placeholder="값"/>\
-                          <input onchange = "modify_input(this, 1)" placeholder="단위" /> `;
+            state += `0 / <input onchange = "modify_input(this, 0); input_size_check(this, 9);" placeholder="값"/>\
+                          <input onchange = "modify_input(this, 1); input_size_check(this, 9);" placeholder="단위" /> `;
         } else if (type == "설명글") {
             state += `0% / 100%`;
         }
@@ -476,16 +504,16 @@
         } else if (type == "X/O") {
             state_content += `${val[2]}`;
         } else if (type == "개") {
-            state_content += `${val[2]}개 / <input value=${val[3]} onchange="modify_input(this)" /> 개`;
+            state_content += `${val[2]}개 / <input value=${val[3]} onchange="modify_input(this); input_size_check(this, 9);" /> 개`;
         } else if (type == "회") {
-            state_content += `${val[2]}회 / <input value=${val[3]} onchange="modify_input(this)" /> 회`;
+            state_content += `${val[2]}회 / <input value=${val[3]} onchange="modify_input(this); input_size_check(this, 9);" /> 회`;
         } else if (type == "세트") {
-            state_content += `${val[2]}세트 / <input value=${val[3]} onchange="modify_input(this)" /> 세트`;
+            state_content += `${val[2]}세트 / <input value=${val[3]} onchange="modify_input(this); input_size_check(this, 9);" /> 세트`;
         } else if (type == "%") {
             state_content += `${val[2]}% / 100%`;
         } else if (type == "단위입력") {
-            state_content += `${val[3]} / <input value=${val[4]} onchange="modify_input(this, 0)" placeholder="값"/>\
-                                          <input value=${val[2]} onchange="modify_input(this, 1)" placeholder="단위" /> `;
+            state_content += `${val[3]} / <input value=${val[4]} onchange="modify_input(this, 0); input_size_check(this, 9);" placeholder="값"/>\
+                                          <input value=${val[2]} onchange="modify_input(this, 1); input_size_check(this, 9);" placeholder="단위" /> `;
         } else if (type == "설명글") {
             state_content += `${val[2]}% / 100%`;
         }
@@ -523,7 +551,7 @@
                 <td class='goal_td'>
                     <img index=${index} class="add_goal" onclick="add(this)" src='plus.png' />
                     <img index=${index} class="remove_goal" onclick="remove(this)" src='minus.png' />
-                    <input class='goal' value="${goal}" onchange="modify_goal(this)" placeholder="내용 입력" />
+                    <input class='goal' value="${goal}" onchange="modify_goal(this); input_size_check(this, 20);" placeholder="내용 입력" />
                 </td>
                 <td>
                     <div class='percentage'>-</div>
@@ -539,7 +567,7 @@
                 <td class='goal_td'>
                     <img index=${index} class="add_goal" onclick="add(this)" src='plus.png' />
                     <img index=${index} class="remove_goal" onclick="remove(this)" src='minus.png' />
-                    <input class='goal' value="${goal}" onchange="modify_goal(this)" placeholder="내용 입력" />
+                    <input class='goal' value="${goal}" onchange="modify_goal(this); input_size_check(this, 20);" placeholder="내용 입력" />
                 </td>
                 <td>
                     <div class='percentage'>-</div>
@@ -556,6 +584,16 @@
         };
     }
 
+    function save_comment_db() {
+        let date = $('#calendar').val();
+        $.ajax({
+            url: `/comment?id=<%=id%>&date=${date}&comment=${data_comment}`,
+            type: 'PUT',
+            success: function(result) {},
+            error: function(e) {}
+        });
+    }
+
     function control_click() {
         let div = $(this).parent();
         let td = $(div).parent();
@@ -568,7 +606,7 @@
                 $(this).css("background", "#aef1a1");
                 $(this).text("커멘트 저장");
                 let val = $($(tr).find('.state')).text();
-                let textarea = `<textarea class='description' placeholder="내용 입력" />`;
+                let textarea = `<textarea class='description' onchange="input_size_check(this, 300);" placeholder="내용 입력" />`;
                 $($(tr).find('.state')).html(textarea);
                 $($(tr).find('textarea')).val(val);
             } else if (btn == "커멘트 저장") {
@@ -578,6 +616,7 @@
                 $($(tr).find('textarea')).remove();
                 data_comment = val;
                 $($(tr).find('.state')).text(data_comment);
+                save_comment_db();
             }
             return;
         }
@@ -671,7 +710,7 @@
 
             // state 처리
             if (btn == "수정") {
-                let textarea = `<textarea class='description'/>`;
+                let textarea = `<textarea class='description' onchange="input_size_check(this, 300);"/>`;
                 $($(tr).find('.state')).html(textarea);
                 $($(tr).find('textarea')).val(data[index][3]);
                 return;
@@ -687,7 +726,7 @@
         $($(tr).find('.percentage')).text(percentage + '%');
         $($(tr).find('.state')).text(state);
 
-        // me OR friend
+        // 누른 버튼에 따라, user에 me 또는 friend 대입
         let p = $(this).parent();
         let pp = $(p).parent();
         let ppp = $(pp).parent();
@@ -695,6 +734,19 @@
         let class_me = $(ppp).hasClass("me");
         if (class_me) user = "me";
         else user = "friend";
+
+        // db 저장
+        let date = $('#calendar').val();
+        let goal = data[index][0];
+        let data1 = data[index][2];
+        let data2 = data[index][3];
+        let data3 = data[index][4];
+        $.ajax({
+            url: `/content?id=<%=id%>&date=${date}&index=${index}&goal=${goal}&type=${type}&data1=${data1}&data2=${data2}&data3=${data3}`,
+            type: 'PUT',
+            success: function(result) {},
+            error: function(e) {}
+        });
 
         // 평균 계산
         let nan = 0;
@@ -813,6 +865,15 @@
 
         let table_row;
         if (index == 'avg') {
+            let flag = false; // 달성률에 해당하는 항목이 하나도 없다면 평균을 산출하지 않도록 함
+            $('.' + user).each(function() {
+                let val = $($(this).find('.percentage')).text();
+                if (val != '-') {
+                    flag = true;
+                };
+            });
+            if (flag == false) percentage = "-"; // 평균 없음
+
             table_row = `
             <tr id='avg_${user}' class="row avg" index="avg">
                 <td>
@@ -992,15 +1053,5 @@
     $('#calendar').trigger('change');
     */
 </script>
-
-</html>
-
-</html>
-
-</html>
-
-</html>
-
-</html>
 
 </html>
