@@ -9,12 +9,12 @@
 </head>
 
 <body>
-    <h1>목표 달성 기록</h1>
+    <div id='big_big_label'>목표 달성 기록</div>
     <div id='contain'>
-        <div style="font-size: 3rem; margin-left: 2%; margin-right: 1%;">날짜</div>
-        <input type="date" id="calendar" class='contain' onkeydown="return false" min="2021-01-01" max="2100-12-31">
-        <div style="font-size: 3rem; margin-left: 2%; margin-right: 1%;">친구</div>
-        <select class='contain'>
+        <div class='contain_ele big_label'>날짜</div>
+        <input class='contain_ele' type="date" id="calendar" onchange="change_date()" onkeydown="return false" min="2021-01-01" max="2100-12-31">
+        <div class='contain_ele big_label'>친구</div>
+        <select class='contain_ele' style="height: 3.4rem;">
             <option>선택</option>
         </select>
         <button id='mode' onclick="change_mode(0)" style="margin-left: 2%;">수정</button>
@@ -22,44 +22,115 @@
     </div>
     <table border='1px' width='95%' cellspacing="0" cellpadding="0" style="margin-left: 2%;">
         <tr align="center" class="title">
-            <td width="6%">유저</td>
-            <td width="12%">목표</td>
-            <td width="3%">달성</td>
-            <td id="state_title" width="10%">실천 현황</td>
-            <td id="control_title" class='control_td' width="14%">입력</td>
+            <td class='title_ele' width="6%">유저</td>
+            <td class='title_ele' width="12%">목표</td>
+            <td class='title_ele' width="3%">달성</td>
+            <td class='title_ele' id="state_title" width="10%">실천 현황</td>
+            <td id="control_title" class='control_td titel_ele' width="14%">입력</td>
         </tr>
     </table>
-    <h1 id='evaluation'></h1>
     </div>
 </body>
 
 <script>
     var selected_friend = "";
 
-    /* DB에 데이터가 0개인 경우는 일부러 ['-', '-']로 채워넣어야 함*/
+    let mode = 1;
+    let date;
     let data = [
-        ['-', '-']
+        ['-', '-'] // DB에 데이터가 0개인 경우는 일부러 ['-', '-']로 채워넣어야 함
     ];
     let data_comment = "";
     let temp_data = [];
-    let mode = 1;
 
     $('#calendar').val(date_to_string(new Date()));
     $('#calendar').trigger('change');
+    date = $('#calendar').val();
 
     retrieve_content_db();
 
-    function retrieve_comment_db() {
-        let date = $('#calendar').val();
+    function change_mode(cancel) {
+        if (mode == 2 && cancel == 0) { // 저장 버튼을 눌렀다면
+            if (input_is_empty()) return;
+        }
+        if (mode == 1) { // 현재 조회 모드라면
+            let data_num = data.length;
+            if (data_num == 0) {
+                temp_data = [
+                    ['-', '-']
+                ];
+            } else {
+                temp_data = [];
+                for (var i = 0; i < data_num; i++) {
+                    temp_data.push(data[i].slice()); // slice : 깊은 복사
+                }
+            }
+            modify_mode();
+        } else if (mode == 2) { // 현재 수정 모드라면
+            if (cancel == 0) { // 저장 버튼을 눌렀다면
+                let data_num = temp_data.length;
+                if (data_num == 0) {
+                    data = [
+                        ['-', '-']
+                    ];
+                } else {
+                    data = [];
+                    for (var i = 0; i < data_num; i++) {
+                        data.push(temp_data[i].slice()); // slice : 깊은 복사
+                    }
+                }
+                save_content_db();
+            }
+            retrieve_mode();
+        }
+    }
+
+    function change_date() {
+        date = $('#calendar').val();
+        retrieve_content_db();
+    }
+
+    function retrieve_content_db() {
         $.ajax({
-            url: `/comment?id=<%=id%>&date=${date}`,
+            url: `/content?id=<%=id%>&date=${date}`,
             type: 'GET',
             success: function(result) {
-                data_comment = result.result[0].comment;
-                /* DB 데이터 샘플 */
-                // data_comment = "오늘은 그 어느 날보다도 알찬 하루였다!"
+                if (result.result.length == 0) { // 값이 없다면
+                    data = [
+                        ['-', '-']
+                    ];
+                    temp_data = [
+                        ['-', '-']
+                    ];
+                    $(result.result).each(function(index, item) {
+                        let row_data = [item.goal, item.type, item.data1, item.data2.replace(/<br>/gi, '\n'), item.data3];
+                        data.push(row_data);
+                        temp_data.push(row_data);
+                    });
+                } else { // 값이 있다면
+                    data = [];
+                    temp_data = [];
+                    $(result.result).each(function(index, item) {
+                        let row_data = [item.goal, item.type, item.data1, item.data2.replace(/<br>/gi, '\n'), item.data3];
+                        data.push(row_data);
+                        temp_data.push(row_data);
+                    });
+                }
 
-                retrieve_mode();
+                /* DB 데이터 샘플 */
+                // data = [
+                //     ['8시 기상', 'X/O', 'X', '', ''],
+                //     ['푸쉬업', '개', '30', '45', ''],
+                //     ['복근 운동', '회', '20', '60', ''],
+                //     ['스쿼트', '세트', '2', '5', ''],
+                //     ['(단위 미선택)', '-', '', '', ''],
+                //     ['토익 리딩 141~200번', '단위입력', '번', '15', '60'],
+                //     ['달리기', '단위입력', 'km', '0.8', '1.5'],
+                //     ['회의', '설명글', '100', '민덕기 교수님께서 교재 개발 내용을 보다 상세히 안내해주셨음', ''],
+                //     ['긍정적인 생각', '%', '80', '', ''],
+                // ];
+
+                retrieve_comment_db();
             },
             error: function(e) {
                 console.log(e);
@@ -67,30 +138,21 @@
         });
     }
 
-    function retrieve_content_db() {
-        let date = $('#calendar').val();
+    function retrieve_comment_db() {
         $.ajax({
-            url: `/content?id=<%=id%>&date=${date}`,
+            url: `/comment?id=<%=id%>&date=${date}`,
             type: 'GET',
             success: function(result) {
-                $(result.result).each(function(index, item) {
-                    data[index] = [item.goal, item.type, item.data1, item.data2.replace(/<br>/gi, '\n'), item.data3];
-                });
+                data_comment = "";
+                if (result.result.length != 0) { // 값이 있다면
+                    data_comment = result.result[0].comment.replace(/<br>/gi, '\n');
+                }
 
                 /* DB 데이터 샘플 */
-                // data = [
-                //     ['8시 기상', 'X/O', 'X', , ],
-                //     ['푸쉬업', '개', '30', '45', ],
-                //     ['복근 운동', '회', '20', '60', ],
-                //     ['스쿼트', '세트', '2', '5', ],
-                //     ['(단위 미선택)', '-', , , ],
-                //     ['토익 리딩 141~200번', '단위입력', '번', '15', '60'],
-                //     ['달리기', '단위입력', 'km', '0.8', '1.5'],
-                //     ['회의', '설명글', '100', '민덕기 교수님께서 교재 개발 내용을 보다 상세히 안내해주셨음', ],
-                //     ['긍정적인 생각', '%', '80', , ],
-                // ];
+                // data_comment = "오늘은 그 어느 날보다도 알찬 하루였다!"
 
-                retrieve_comment_db();
+                if (mode == 1) retrieve_mode();
+                else if (mode == 2) modify_mode();
             },
             error: function(e) {
                 console.log(e);
@@ -146,26 +208,6 @@
         $('table').append(make_row2('plus'));
     }
 
-    function change_mode(cancel) {
-        if (mode == 2 && cancel == 0) { // 저장 버튼을 눌렀다면
-            if (input_is_empty()) return;
-        }
-        if (mode == 1) { // 현재 조회 모드라면
-            for (var i = 0; i < data.length; i++) {
-                temp_data[i] = data[i].slice(); // 깊은 복사
-            }
-            modify_mode();
-        } else if (mode == 2) { // 현재 수정 모드라면
-            if (cancel == 0) { // 저장 버튼을 눌렀다면
-                save_content_db();
-                for (var i = 0; i < data.length; i++) {
-                    data[i] = temp_data[i].slice(); // 깊은 복사
-                }
-            }
-            retrieve_mode();
-        }
-    }
-
     function input_is_empty() {
         var child = $('.state_wrapper').children();
         for (var i = 0; i < child.length; i++) { // children의 개수 = input box의 개수
@@ -187,6 +229,7 @@
 
     function replace_char(str) {
         if (str == undefined) return "";
+        str = str.toString();
         str = str.replace(/%/gi, '%25');
         str = str.replace(/\n/gi, '<br>');
         str = str.replace(/\+/gi, '%2B');
@@ -195,12 +238,11 @@
     }
 
     function save_content_db() {
-        let date = $('#calendar').val();
         $.ajax({
             url: `/content?id=<%=id%>&date=${date}`,
             type: 'DELETE',
             success: function(result) {
-                for (let index = 0; index < data.length; index++) {
+                for (let index = 0; index < temp_data.length; index++) {
                     let goal = "",
                         type = "",
                         data1 = "",
@@ -238,7 +280,6 @@
         let goal = $('#row' + index).find('input').val();
         if (goal != '' && !confirm(`'${goal}' 항목을 정말로 삭제하시겠습니까?`)) return;
 
-        data.splice(index, 1)
         temp_data.splice(index, 1)
 
         // row index 감소
@@ -286,8 +327,7 @@
         let length = $('.row').length;
         let table_row = "";
 
-        data.splice(index, 0, ['-', '-']);
-        temp_data.splice(index, 0, ['-', '-']);
+        temp_data.splice(index, 0, ['-', '-', '', '', '']);
 
         let state = make_state('-');
 
@@ -438,13 +478,13 @@
         let goal = temp_data[index][0];
         if (type == "개") {
             let val = temp_data[index][2];
-            temp_data[index] = [goal, '개', val, $(self).val()];
+            temp_data[index] = [goal, '개', val, $(self).val(), ''];
         } else if (type == "회") {
             let val = temp_data[index][2];
-            temp_data[index] = [goal, '회', val, $(self).val()];
+            temp_data[index] = [goal, '회', val, $(self).val(), ''];
         } else if (type == "세트") {
             let val = temp_data[index][2];
-            temp_data[index] = [goal, '세트', val, $(self).val()];
+            temp_data[index] = [goal, '세트', val, $(self).val(), ''];
         } else if (type == "단위입력") {
             if (kind == 0) { // 최대값 바꾸기
                 let unit = temp_data[index][2];
@@ -467,7 +507,7 @@
         } else if (type == "개") {
             state += `0개 / <input onchange="modify_input(this); input_size_check(this, 9);" /> 개`;
         } else if (type == "회") {
-            state += `0회 / <input onchange="modify_input(this; input_size_check(this, 9);)" /> 회`;
+            state += `0회 / <input onchange="modify_input(this); input_size_check(this, 9);" /> 회`;
         } else if (type == "세트") {
             state += `0세트 / <input onchange="modify_input(this); input_size_check(this, 9);" /> 세트`;
         } else if (type == "%") {
@@ -585,9 +625,8 @@
     }
 
     function save_comment_db() {
-        let date = $('#calendar').val();
         $.ajax({
-            url: `/comment?id=<%=id%>&date=${date}&comment=${data_comment}`,
+            url: `/comment?id=<%=id%>&date=${date}&comment=${replace_char(data_comment)}`,
             type: 'PUT',
             success: function(result) {},
             error: function(e) {}
@@ -736,7 +775,6 @@
         else user = "friend";
 
         // db 저장
-        let date = $('#calendar').val();
         let goal = data[index][0];
         let data1 = data[index][2];
         let data2 = data[index][3];
@@ -1019,6 +1057,7 @@
             });
         });
     }
+    
     $('#calendar').change(function() {
         clear_color();
         load_me();
@@ -1053,5 +1092,9 @@
     $('#calendar').trigger('change');
     */
 </script>
+
+</html>
+
+</html>
 
 </html>
