@@ -37,103 +37,115 @@
     var selected_friend = "";
 
     /* DB에 데이터가 하나도 없는 경우 */
-    // let data = [
-    //     ['-', '-']
-    // ];
+    let data = [
+        ['-', '-']
+    ];
 
     /* DB에 데이터가 있는 경우 */
-    let data = [
-        ['토익', 'X/O', 'X'],
-        ['푸쉬업', '개', '30', '45'],
-        ['줄넘기', '회', '12', '13'],
-        ['스쿼트', '세트', '2', '4'],
-        ['(타입 선택 안 한 상태)', '-'],
-        ['긍정적인 생각', '%', '80'],
-        ['달리기', '단위입력', 'km', '0.8', '1.5'],
-        ['회의', '설명글', '100', '민덕기 교수님께서 교재 개발 내용을 보다 상세히 안내해주셨음']
-    ];
-    let temp_data = [];
+    // let data = [
+    //     ['토익', 'X/O', 'X', , ],
+    //     ['푸쉬업', '개', '30', '45', ],
+    //     ['줄넘기', '회', '12', '13', ],
+    //     ['스쿼트', '세트', '2', '4', ],
+    //     ['(타입 선택 안 한 상태)', '-', , , ],
+    //     ['긍정적인 생각', '%', '80', , ],
+    //     ['달리기', '단위입력', 'km', '0.8', '1.5'],
+    //     ['회의', '설명글', '100', '민덕기 교수님께서 교재 개발 내용을 보다 상세히 안내해주셨음', ]
+    // ];
 
     let data_comment = "오늘은 그 어느 날보다도 알찬 하루였다!"
 
-    // 임시 초기화
-    $("#control_title").css('display', 'table-cell');
-    $("#state_title").css('width', '10%');
-
-    for (let i = 0; i < data.length; i++) {
-        $('table').append(make_row("me", i, data));
-    }
-    $('table').append(make_row("me", "avg"));
-
-    /*
-    for (let i = 0; i < data.length; i++) {
-        $('table').append(make_row("friend", i, data));
-    }
-    $('table').append(make_row("friend", "avg"));
-    */
-
-    $('.control_btn').click(control_click);
-    $('.control_btn').click(change_percentage_color);
-    change_percentage_color();
+    let temp_data = [];
 
     let mode = 1;
+
+    $('#calendar').val(date_to_string(new Date()));
+    $('#calendar').trigger('change');
+
+    retrieve_content_db();
+
+    function retrieve_content_db() {
+        let date = $('#calendar').val();
+        $.ajax({
+            url: `/content?id=<%=id%>&date=${date}`,
+            type: 'GET',
+            success: function(result) {
+                $(result.result).each(function(index, item) {
+                    data[index] = [item.goal, item.type, item.data1, item.data2.replace(/<br>/gi, '\n'), item.data3];
+                });
+                retrieve_mode();
+            },
+            error: function(e) {
+                console.log(e);
+            }
+        });
+    }
+
+    function retrieve_mode() {
+        mode = 1; // 조회 모드로 전환
+        $('tr:not(.title)').remove();
+
+        $('#cancel').css('display', 'none');
+
+        $('#mode').text("수정");
+        $('#mode').css("background", "#FFD2D2");
+
+        $("#control_title").css('display', 'table-cell');
+        $("#state_title").css('width', '10%');
+
+        for (let i = 0; i < data.length; i++) {
+            $('table').append(make_row("me", i, data));
+        }
+        $('table').append(make_row("me", "avg"));
+        /*
+        for (let i = 0; i < data.length; i++) {
+            $('table').append(make_row("friend", i, data));
+        }
+        $('table').append(make_row("friend", "avg"));
+        */
+        $('.control_btn').click(control_click);
+        $('.control_btn').click(change_percentage_color);
+        change_percentage_color();
+    }
+
+    function modify_mode() {
+        mode = 2; // 수정 모드로 전환
+        $('tr:not(.title)').remove();
+
+        $('#cancel').css('display', 'inline-block');
+        $('#cancel').css('margin-left', '2%');
+
+        $('#mode').text("저장");
+        $('#mode').css("background", "#aef1a1");
+
+        $("#control_title").css('display', 'none');
+        $("#state_title").css('width', '20%');
+
+        for (let i = 0; i < data.length; i++) {
+            let ret = make_row2(i);
+            $('table').append(ret.table_row);
+            $($('#row' + i).find('.type_sel')).val(ret.type);
+        }
+        $('table').append(make_row2('plus'));
+    }
 
     function change_mode(cancel) {
         if (mode == 2 && cancel == 0) { // 저장 버튼을 눌렀다면
             if (input_is_empty()) return;
         }
-        $('tr:not(.title)').remove();
         if (mode == 1) { // 현재 조회 모드라면
-            mode = 2; // 수정 모드로 전환
-
             for (var i = 0; i < data.length; i++) {
                 temp_data[i] = data[i].slice(); // 깊은 복사
             }
-
-            $('#cancel').css('display', 'inline-block');
-            $('#cancel').css('margin-left', '2%');
-
-            $('#mode').text("저장");
-            $('#mode').css("background", "#aef1a1");
-
-            $("#control_title").css('display', 'none');
-            $("#state_title").css('width', '20%');
-
-            for (let i = 0; i < data.length; i++) {
-                let ret = make_row2(i, data);
-                $('table').append(ret.table_row);
-                $($('#row' + i).find('.type_sel')).val(ret.type);
-            }
-            $('table').append(make_row2('plus', data));
-        } else { // 현재 수정 모드라면
-            mode = 1; // 조회 모드로 전환
+            modify_mode();
+        } else if (mode == 2) { // 현재 수정 모드라면
             if (cancel == 0) { // 저장 버튼을 눌렀다면
+                save_content_db();
                 for (var i = 0; i < data.length; i++) {
                     data[i] = temp_data[i].slice(); // 깊은 복사
                 }
             }
-
-            $('#cancel').css('display', 'none');
-
-            $('#mode').text("수정");
-            $('#mode').css("background", "#FFD2D2");
-
-            $("#control_title").css('display', 'table-cell');
-            $("#state_title").css('width', '10%');
-
-            for (let i = 0; i < data.length; i++) {
-                $('table').append(make_row("me", i, data));
-            }
-            $('table').append(make_row("me", "avg"));
-            /*
-            for (let i = 0; i < data.length; i++) {
-                $('table').append(make_row("friend", i, data));
-            }
-            $('table').append(make_row("friend", "avg"));
-            */
-            $('.control_btn').click(control_click);
-            $('.control_btn').click(change_percentage_color);
-            change_percentage_color();
+            retrieve_mode();
         }
     }
 
@@ -149,6 +161,46 @@
         return false;
     }
 
+    function replace_char(str) {
+        str = str.replace(/%/gi, '%25');
+        str = str.replace(/\n/gi, '<br>');
+        str = str.replace(/\+/gi, '%2B');
+        str = str.replace(/'/gi, '\'\'');
+        return str;
+    }
+
+    function save_content_db() {
+        let date = $('#calendar').val();
+        $.ajax({
+            url: `/content?id=<%=id%>&date=${date}`,
+            type: 'DELETE',
+            success: function(result) {
+                for (let index = 0; index < data.length; index++) {
+                    let goal = "",
+                        type = "",
+                        data1 = "",
+                        data2 = "",
+                        data3 = "";
+                    let length = temp_data[index].length;
+                    if (length >= 1) goal = replace_char(temp_data[index][0]);
+                    if (length >= 2) type = replace_char(temp_data[index][1]);
+                    if (length >= 3) data1 = replace_char(temp_data[index][2]);
+                    if (length >= 4) data2 = replace_char(temp_data[index][3]);
+                    if (length >= 5) data3 = replace_char(temp_data[index][4]);
+                    $.ajax({
+                        url: `/content?id=<%=id%>&date=${date}&index=${index}&goal=${goal}&type=${type}&data1=${data1}&data2=${data2}&data3=${data3}`,
+                        type: 'PUT',
+                        success: function(result) {},
+                        error: function(e) {}
+                    });
+                }
+            },
+            error: function(e) {
+                console.log(e);
+            }
+        });
+    }
+
     function remove(self) {
         let length = $('.row').length;
         if (length == 1) return;
@@ -158,6 +210,7 @@
         let goal = $('#row' + index).find('input').val();
         if (goal != '' && !confirm(`'${goal}' 항목을 정말로 삭제하시겠습니까?`)) return;
 
+        data.splice(index, 1)
         temp_data.splice(index, 1)
 
         // row index 감소
@@ -182,7 +235,7 @@
         $('#row' + index).remove();
 
         if (index == 0) { // 첫 줄에서 제거한 경우
-            let name = `<td id="name" rowspan="${length + 1}"></td>`;
+            let name = `<td id="name" rowspan="${length + 1}"><%=name%></td>`;
             if (length == 1) { // 한 줄만 남은 경우
                 // plus에 name 추가
                 let td = $('#plus').children()[0];
@@ -205,6 +258,7 @@
         let length = $('.row').length;
         let table_row = "";
 
+        data.splice(index, 0, ['-', '-']);
         temp_data.splice(index, 0, ['-', '-']);
 
         let state = make_state('-');
@@ -213,7 +267,7 @@
             // 삽입할 html 내용
             table_row = `
             <tr id='row${index}' class="row">
-                <td id="name" rowspan="${length + 1}"></td>
+                <td id="name" rowspan="${length + 1}"><%=name%></td>
                 <td class='goal_td'>
                     <img index=${index} class="add_goal" onclick="add(this)" src='plus.png' />
                     <img index=${index} class="remove_goal" onclick="remove(this)" src='minus.png' />
@@ -440,7 +494,7 @@
         return wrapper;
     }
 
-    function make_row2(index, data) {
+    function make_row2(index) {
         let table_row;
 
         if (index == 'plus') {
@@ -465,7 +519,7 @@
         if (index == 0) {
             table_row = `
             <tr id='row${index}' class="row">
-                <td id='name' rowspan='${data.length + 1}'></td>
+                <td id='name' rowspan='${data.length + 1}'><%=name%></td>
                 <td class='goal_td'>
                     <img index=${index} class="add_goal" onclick="add(this)" src='plus.png' />
                     <img index=${index} class="remove_goal" onclick="remove(this)" src='minus.png' />
@@ -661,7 +715,7 @@
         $($('#avg_' + user).find(".percentage")).text(avg + '%');
     }
 
-    function make_row(user, index, data) {
+    function make_row(user, index) {
         let type, goal, percentage, state, control;
         if (index != 'avg') {
             type = data[index][1];
@@ -780,7 +834,7 @@
         } else if (index == 0) {
             table_row = `
             <tr id='row${index}' class="row ${user}" index="${index}">
-                <td id='name' rowspan='${data.length + 1}'></td>
+                <td id='name' rowspan='${data.length + 1}'><%=name%></td>
                 <td>
                     <div class='goal'>${goal}</div>
                 </td>
@@ -832,128 +886,7 @@
         return new Date(string.substr(0, 4), string.substr(5, 2) - 1, string.substr(8, 2));
     }
 
-    function set_average() {
-        var avg = 0;
-        var cnt = 0;
-        for (var i = 0; i < 7; i++) {
-            var score = $($($($('#week' + i)).children()[3]).children()[0]).text();
-            score = Number.parseInt(score);
-            if (score || score == 0) {
-                cnt++;
-                avg += score;
-            }
-        }
-        avg /= cnt;
-        if (avg) $('#my_average').text(avg.toFixed(2) + "%");
-    }
-
-    function set_table(idx, goal, accomplish, score) {
-        $($($($('#week' + idx)).children()[1]).children()[0]).text(goal);
-        $($($($('#week' + idx)).children()[2]).children()[0]).text(accomplish);
-        if (score != "") $($($($('#week' + idx)).children()[3]).children()[0]).text(score + "%");
-    }
-
-    function clear_table() {
-        for (var i = 0; i < 7; i++) {
-            for (var j = 0; j < 4; j++) {
-                $($($($('#week' + i)).children()[j]).children()[0]).text("");
-            }
-        }
-        $('#my_average').text("");
-    }
-
-    function set_friend_average() {
-        var avg = 0;
-        var cnt = 0;
-        for (var i = 0; i < 7; i++) {
-            var score = $($($($('#week' + i)).children()[6]).children()[0]).text();
-            score = Number.parseInt(score);
-            if (score || score == 0) {
-                cnt++;
-                avg += score;
-            }
-        }
-        avg /= cnt;
-        if (avg) $('#his_average').text(avg.toFixed(2) + "%");
-
-        set_color();
-    }
-
-    function set_friend_table(idx, goal, accomplish, score) {
-        $($($($('#week' + idx)).children()[4]).children()[0]).text(goal);
-        $($($($('#week' + idx)).children()[5]).children()[0]).text(accomplish);
-        if (score != "") $($($($('#week' + idx)).children()[6]).children()[0]).text(score + "%");
-    }
-
-    function clear_friend_table() {
-        for (var i = 0; i < 7; i++) {
-            for (var j = 4; j < 7; j++) {
-                $($($($('#week' + i)).children()[j]).children()[0]).text("");
-            }
-        }
-        $('#his_average').text("");
-    }
-
-    function set_color() {
-        for (var i = 0; i < 7; i++) {
-            var my_score = $($($($('#week' + i)).children()[3]).children()[0]).text();
-            if (my_score == "") continue;
-            var his_score = $($($($('#week' + i)).children()[6]).children()[0]).text();
-            if (his_score == "") continue;
-            var my_win = my_score.substr(0, my_score.length - 1) - his_score.substr(0, his_score.length - 1);
-            var my_box = $($('#week' + i)).children()[3];
-            var his_box = $($('#week' + i)).children()[6];
-            if (my_win > 0) {
-                my_box.style.backgroundColor = "#9cebaf";
-                his_box.style.backgroundColor = "#FFD2D2";
-            } else if (my_win < 0) {
-                my_box.style.backgroundColor = "#FFD2D2";
-                his_box.style.backgroundColor = "#9cebaf";
-            } else {
-                my_box.style.backgroundColor = "#9cebaf";
-                his_box.style.backgroundColor = "#9cebaf";
-            }
-        }
-
-        var my_score = $($($($('#average')).children()[1]).children()[0]).text();
-        if (my_score == "") return;
-        var his_score = $($($($('#average')).children()[2]).children()[0]).text();
-        if (his_score == "") return;
-        var my_win = my_score.substr(0, my_score.length - 1) - his_score.substr(0, his_score.length - 1);
-        var my_box = $($('#average')).children()[1];
-        var his_box = $($('#average')).children()[2];
-        var evaluation = $('#evaluation');
-        my_win = my_win.toFixed(2);
-        if (my_win > 0) {
-            my_box.style.backgroundColor = "#9cebaf";
-            his_box.style.backgroundColor = "#FFD2D2";
-            evaluation.text(`'<%=id%>'님이 '${selected_friend}'님보다 ${my_win}% 앞섭니다!`);
-        } else
-        if (my_win < 0) {
-            my_box.style.backgroundColor = "#FFD2D2";
-            his_box.style.backgroundColor = "#9cebaf";
-            evaluation.text(`'<%=id%>'님이 '${selected_friend}'님보다 ${-my_win}% 뒤쳐집니다!`);
-        } else {
-            my_box.style.backgroundColor = "#9cebaf";
-            his_box.style.backgroundColor = "#9cebaf";
-            evaluation.text(`'<%=id%>'님과 '${selected_friend}'님이 서로 막상막하네요!`);
-        }
-    }
-
-    function clear_color() {
-        for (var i = 0; i < 7; i++) {
-            var my_box = $($('#week' + i)).children()[3];
-            var his_box = $($('#week' + i)).children()[6];
-            my_box.style.backgroundColor = "white";
-            his_box.style.backgroundColor = "white";
-        }
-        var my_box = $($('#average')).children()[1];
-        var his_box = $($('#average')).children()[2];
-        my_box.style.backgroundColor = "white";
-        his_box.style.backgroundColor = "white";
-        $('#evaluation').text("");
-    }
-
+    /*
     function load_me() {
         var load = 0;
         clear_table();
@@ -1025,7 +958,6 @@
             });
         });
     }
-    /*
     $('#calendar').change(function() {
         clear_color();
         load_me();
@@ -1060,6 +992,8 @@
     $('#calendar').trigger('change');
     */
 </script>
+
+</html>
 
 </html>
 

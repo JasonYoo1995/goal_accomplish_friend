@@ -41,6 +41,11 @@ h1 {
     margin-bottom: 3%;
 }
 
+#name {
+    text-align: center;
+    font-size: 2rem;
+}
+
 .row>td {
     height: fit-content;
     align-items: center;
