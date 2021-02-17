@@ -34,7 +34,10 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "public")));
+
+// public/images 디렉토리를 root 디렉토리처럼 취급
+app.use(express.static(path.join(__dirname, "/public/stylesheets/")));
+app.use(express.static(path.join(__dirname, "/public/images/")));
 
 app.use("/", indexRouter);
 
@@ -42,9 +45,6 @@ app.use("/", indexRouter);
 app.use(function (req, res, next) {
   next(createError(404));
 });
-
-// public/images 디렉토리를 root 디렉토리처럼 취급
-app.use(express.static(__dirname + "/public/stylesheets/"));
 
 // error handler
 app.use(function (err, req, res, next) {

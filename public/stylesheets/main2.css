@@ -1,0 +1,200 @@
+@import url(//fonts.googleapis.com/earlyaccess/jejugothic.css);
+body {
+    background-color: rgba(245, 245, 245, 0.524);
+}
+
+#big_big_label {
+    font-size: 4rem;
+    font-weight: bold;
+    margin-left: 2%;
+    margin-top: 2%;
+    margin-bottom: 2%;
+}
+
+.big_label {
+    font-size: 3rem;
+    margin-left: 2%;
+    margin-right: 1%;
+    font-family: 'Jeju Gothic', sans-serif;
+}
+
+#contain {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 3%;
+    vertical-align: middle;
+    align-items: center;
+}
+
+.contain_ele {
+    height: 3rem;
+    width: fit-content;
+    font-size: 3rem;
+    font-family: 'Jeju Gothic', sans-serif;
+}
+
+#mode {
+    width: fit-content;
+    padding: 0;
+    line-height: 0;
+    height: 3.5rem;
+    font-size: 3rem;
+    font-family: 'Jeju Gothic', sans-serif;
+    background-color: #C7E6EA;
+}
+
+#cancel {
+    width: fit-content;
+    padding: 0;
+    line-height: 0;
+    height: 3.5rem;
+    font-size: 3rem;
+    font-family: 'Jeju Gothic', sans-serif;
+    background-color: #C7E6EA;
+}
+
+table {
+    margin-bottom: 3%;
+    background-color: floralwhite;
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: bold;
+    font-family: 'Jeju Gothic', sans-serif;
+    background-color: rgb(233, 211, 181);
+}
+
+.title_ele {
+    line-height: 3rem;
+    height: 3rem;
+}
+
+#name {
+    text-align: center;
+    font-size: 2rem;
+    font-family: 'Jeju Gothic', sans-serif;
+}
+
+tr {
+    height: 3rem;
+}
+
+.row>td {
+    height: fit-content;
+    align-items: center;
+}
+
+.row>td>div {
+    height: fit-content;
+    font-size: 180%;
+    font-family: 'Jeju Gothic', sans-serif;
+    text-align: center;
+}
+
+td>input {
+    font-size: 180%;
+    font-family: 'Jeju Gothic', sans-serif;
+    margin-top: 1%;
+    margin-bottom: 1%;
+    margin-left: 2%;
+    margin-right: 2%;
+    width: calc(96% - 6rem);
+}
+
+img {
+    width: 3rem;
+}
+
+.goal_td {
+    display: flex;
+    padding-left: 8px;
+}
+
+.control_td {
+    height: 3rem;
+    line-height: 3rem;
+}
+
+.control_div {
+    vertical-align: middle;
+}
+
+.control_btn {
+    height: 2.5rem;
+    line-height: 2.5rem;
+    border-radius: 2rem;
+    font-size: 1.5rem;
+    font-family: 'Jeju Gothic', sans-serif;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    background-color: rgb(240, 243, 247);
+}
+
+.avg {
+    background-color: rgb(241, 230, 241);
+}
+
+.new_line {
+    white-space: pre-wrap;
+}
+
+.state>input {
+    height: 2rem;
+    font-size: 1.5rem;
+    font-family: 'Jeju Gothic', sans-serif;
+    width: 3rem;
+}
+
+.state>div>input {
+    height: 2rem;
+    font-size: 1.5rem;
+    font-family: 'Jeju Gothic', sans-serif;
+    width: 3rem;
+}
+
+.state_wrapper {
+    float: left;
+    width: fit-content;
+    line-height: 3rem;
+    height: 3rem;
+    margin-left: 4%;
+}
+
+.type_sel {
+    width: 100%;
+    font-size: 1.8rem;
+    font-family: 'Jeju Gothic', sans-serif;
+}
+
+.type_sel_wrapper {
+    float: left;
+    margin-left: 2%;
+    width: 10rem;
+    line-height: 3rem;
+    height: 3rem;
+}
+
+.percentage>input {
+    height: 2rem;
+    font-size: 1.5rem;
+    font-family: 'Jeju Gothic', sans-serif;
+    width: 3rem;
+}
+
+input:not(#calendar),
+textarea {
+    border-width: medium;
+}
+
+textarea {
+    margin-top: 4%;
+    margin-bottom: 4%;
+    width: 80%;
+    height: 7.5rem;
+    resize: none;
+    font-size: 1.5rem;
+    font-family: 'Jeju Gothic', sans-serif;
+    vertical-align: middle;
+}

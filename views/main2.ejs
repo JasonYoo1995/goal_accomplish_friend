@@ -5,7 +5,7 @@
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.3/jquery.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.10/jquery-ui.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
-    <link href="main.css" rel="stylesheet" type="text/css">
+    <link href="main2.css" rel="stylesheet" type="text/css">
 </head>
 
 <body>
@@ -117,18 +117,13 @@
             url: `/content?id=<%=id%>&date=${cur_date}`,
             type: 'GET',
             success: function(result) {
-                if (result.result.length == 0) { // 값이 없다면
+                if (result.result == undefined || result.result.length == 0) { // 값이 없다면
                     me_data = [
                         ['-', '-']
                     ];
                     temp_data = [
                         ['-', '-']
                     ];
-                    $(result.result).each(function(index, item) {
-                        let row_data = [item.goal, item.type, item.data1, item.data2.replace(/<br>/gi, '\n'), item.data3];
-                        me_data.push(row_data);
-                        temp_data.push(row_data);
-                    });
                 } else { // 값이 있다면
                     me_data = [];
                     temp_data = [];
@@ -166,7 +161,7 @@
             type: 'GET',
             success: function(result) {
                 me_data_comment = "";
-                if (result.result.length != 0) { // 값이 있다면
+                if (result.result != undefined && result.result.length != 0) { // 값이 있다면
                     me_data_comment = result.result[0].comment.replace(/<br>/gi, '\n');
                 }
 
@@ -202,14 +197,10 @@
             url: `/content?id=${friend_name}&date=${cur_date}`,
             type: 'GET',
             success: function(result) {
-                if (result.result.length == 0) { // 값이 없다면
+                if (result.result == undefined || result.result.length == 0) { // 값이 없다면
                     friend_data = [
                         ['-', '-']
                     ];
-                    $(result.result).each(function(index, item) {
-                        let row_data = [item.goal, item.type, item.data1, item.data2.replace(/<br>/gi, '\n'), item.data3];
-                        friend_data.push(row_data);
-                    });
                 } else { // 값이 있다면
                     friend_data = [];
                     $(result.result).each(function(index, item) {
@@ -233,7 +224,7 @@
             type: 'GET',
             success: function(result) {
                 friend_data_comment = "";
-                if (result.result.length != 0) { // 값이 있다면
+                if (result.result != undefined && result.result.length != 0) { // 값이 있다면
                     friend_data_comment = result.result[0].comment.replace(/<br>/gi, '\n');
                 }
 
@@ -432,7 +423,7 @@
                 <td class='goal_td'>
                     <img index=${index} class="add_goal" onclick="add(this)" src='plus.png' />
                     <img index=${index} class="remove_goal" onclick="remove(this)" src='minus.png' />
-                    <input class='goal' onchange="modify_goal(this); input_size_check(this, 20);" placeholder="내용 입력" />
+                    <input class='goal' onchange="modify_goal(this); input_size_check(this, 50);" placeholder="내용 입력" />
                 </td>
                 <td>
                     <div class='percentage'>-</div>
@@ -451,7 +442,7 @@
                 <td class='goal_td'>
                     <img index=${index} class="add_goal" onclick="add(this)" src='plus.png' />
                     <img index=${index} class="remove_goal" onclick="remove(this)" src='minus.png' />
-                    <input class='goal' onchange="modify_goal(this); input_size_check(this, 20);" placeholder="내용 입력" />
+                    <input class='goal' onchange="modify_goal(this); input_size_check(this, 50);" placeholder="내용 입력" />
                 </td>
                 <td>
                     <div class='percentage'>-</div>
@@ -690,7 +681,7 @@
                 <td class='goal_td'>
                     <img index=${index} class="add_goal" onclick="add(this)" src='plus.png' />
                     <img index=${index} class="remove_goal" onclick="remove(this)" src='minus.png' />
-                    <input class='goal' value="${goal}" onchange="modify_goal(this); input_size_check(this, 20);" placeholder="내용 입력" />
+                    <input class='goal' value="${goal}" onchange="modify_goal(this); input_size_check(this, 50);" placeholder="내용 입력" />
                 </td>
                 <td>
                     <div class='percentage'>-</div>
@@ -706,7 +697,7 @@
                 <td class='goal_td'>
                     <img index=${index} class="add_goal" onclick="add(this)" src='plus.png' />
                     <img index=${index} class="remove_goal" onclick="remove(this)" src='minus.png' />
-                    <input class='goal' value="${goal}" onchange="modify_goal(this); input_size_check(this, 20);" placeholder="내용 입력" />
+                    <input class='goal' value="${goal}" onchange="modify_goal(this); input_size_check(this, 50);" placeholder="내용 입력" />
                 </td>
                 <td>
                     <div class='percentage'>-</div>
