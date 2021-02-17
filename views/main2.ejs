@@ -13,8 +13,8 @@
     <div id='contain'>
         <div class='contain_ele big_label'>날짜</div>
         <input class='contain_ele' type="date" id="calendar" onchange="change_date()" onkeydown="return false" min="2021-01-01" max="2100-12-31">
-        <div class='contain_ele big_label'>친구</div>
-        <select class='contain_ele' style="height: 3.4rem;">
+        <div id='friend_label' class='contain_ele big_label'>친구</div>
+        <select id='friend_select' class='contain_ele' onchange="change_friend(this)" style="height: 3.4rem;">
             <option>선택</option>
         </select>
         <button id='mode' onclick="change_mode(0)" style="margin-left: 2%;">수정</button>
@@ -26,35 +26,62 @@
             <td class='title_ele' width="12%">목표</td>
             <td class='title_ele' width="3%">달성</td>
             <td class='title_ele' id="state_title" width="10%">실천 현황</td>
-            <td id="control_title" class='control_td titel_ele' width="14%">입력</td>
+            <td id="control_title" class='control_td titel_ele' width="15%">입력</td>
         </tr>
     </table>
-    </div>
 </body>
 
 <script>
-    var selected_friend = "";
+    const control_btn_color = 'rgb(240, 243, 247)';
 
     let mode = 1;
-    let date;
-    let data = [
+    let cur_date;
+    let selected_friend_name = "";
+    let friend_list = [];
+    let me_data = [
         ['-', '-'] // DB에 데이터가 0개인 경우는 일부러 ['-', '-']로 채워넣어야 함
     ];
-    let data_comment = "";
+    let me_data_comment = "";
     let temp_data = [];
+    let friend_data = [
+        ['-', '-'] // DB에 데이터가 0개인 경우는 일부러 ['-', '-']로 채워넣어야 함
+    ];
+    let friend_data_comment = "";
 
-    $('#calendar').val(date_to_string(new Date()));
-    $('#calendar').trigger('change');
-    date = $('#calendar').val();
+    load_friend_list();
 
-    retrieve_content_db();
+    function load_friend_list() {
+        $.ajax({
+            url: `/friend?id=<%=id%>`,
+            type: 'GET',
+            success: function(data) {
+                data.result.forEach(function(friend) {
+                    friend_list.push(friend);
+                    $('#friend_select').append(`<option>${friend.friend_name}</option>`);
+                });
+
+                // 캘린더 초기화
+                $('#calendar').val(date_to_string(new Date()));
+                cur_date = $('#calendar').val();
+                $('#calendar').trigger('change');
+            },
+            error: function(e) {
+                console.log(e);
+            }
+        });
+    }
+
+    function change_date() {
+        cur_date = $('#calendar').val();
+        retrieve_content_db();
+    }
 
     function change_mode(cancel) {
         if (mode == 2 && cancel == 0) { // 저장 버튼을 눌렀다면
             if (input_is_empty()) return;
         }
         if (mode == 1) { // 현재 조회 모드라면
-            let data_num = data.length;
+            let data_num = me_data.length;
             if (data_num == 0) {
                 temp_data = [
                     ['-', '-']
@@ -62,7 +89,7 @@
             } else {
                 temp_data = [];
                 for (var i = 0; i < data_num; i++) {
-                    temp_data.push(data[i].slice()); // slice : 깊은 복사
+                    temp_data.push(me_data[i].slice()); // slice : 깊은 복사
                 }
             }
             modify_mode();
@@ -70,13 +97,13 @@
             if (cancel == 0) { // 저장 버튼을 눌렀다면
                 let data_num = temp_data.length;
                 if (data_num == 0) {
-                    data = [
+                    me_data = [
                         ['-', '-']
                     ];
                 } else {
-                    data = [];
+                    me_data = [];
                     for (var i = 0; i < data_num; i++) {
-                        data.push(temp_data[i].slice()); // slice : 깊은 복사
+                        me_data.push(temp_data[i].slice()); // slice : 깊은 복사
                     }
                 }
                 save_content_db();
@@ -85,18 +112,13 @@
         }
     }
 
-    function change_date() {
-        date = $('#calendar').val();
-        retrieve_content_db();
-    }
-
     function retrieve_content_db() {
         $.ajax({
-            url: `/content?id=<%=id%>&date=${date}`,
+            url: `/content?id=<%=id%>&date=${cur_date}`,
             type: 'GET',
             success: function(result) {
                 if (result.result.length == 0) { // 값이 없다면
-                    data = [
+                    me_data = [
                         ['-', '-']
                     ];
                     temp_data = [
@@ -104,15 +126,15 @@
                     ];
                     $(result.result).each(function(index, item) {
                         let row_data = [item.goal, item.type, item.data1, item.data2.replace(/<br>/gi, '\n'), item.data3];
-                        data.push(row_data);
+                        me_data.push(row_data);
                         temp_data.push(row_data);
                     });
                 } else { // 값이 있다면
-                    data = [];
+                    me_data = [];
                     temp_data = [];
                     $(result.result).each(function(index, item) {
                         let row_data = [item.goal, item.type, item.data1, item.data2.replace(/<br>/gi, '\n'), item.data3];
-                        data.push(row_data);
+                        me_data.push(row_data);
                         temp_data.push(row_data);
                     });
                 }
@@ -140,16 +162,80 @@
 
     function retrieve_comment_db() {
         $.ajax({
-            url: `/comment?id=<%=id%>&date=${date}`,
+            url: `/comment?id=<%=id%>&date=${cur_date}`,
             type: 'GET',
             success: function(result) {
-                data_comment = "";
+                me_data_comment = "";
                 if (result.result.length != 0) { // 값이 있다면
-                    data_comment = result.result[0].comment.replace(/<br>/gi, '\n');
+                    me_data_comment = result.result[0].comment.replace(/<br>/gi, '\n');
                 }
 
                 /* DB 데이터 샘플 */
                 // data_comment = "오늘은 그 어느 날보다도 알찬 하루였다!"
+
+                retrieve_friend_content_db();
+            },
+            error: function(e) {
+                console.log(e);
+            }
+        });
+    }
+
+    function change_friend(self) {
+        selected_friend_name = $(self).children("option:selected").val();
+        retrieve_friend_content_db();
+    }
+
+    function get_friend_id(friend_name) {
+        let friend_id = "";
+        $(friend_list).each(function(index, item) {
+            if (item.friend_name == friend_name) {
+                friend_id = item.friend_id;
+            }
+        });
+        return friend_id;
+    }
+
+    function retrieve_friend_content_db() {
+        let friend_name = get_friend_id(selected_friend_name);
+        $.ajax({
+            url: `/content?id=${friend_name}&date=${cur_date}`,
+            type: 'GET',
+            success: function(result) {
+                if (result.result.length == 0) { // 값이 없다면
+                    friend_data = [
+                        ['-', '-']
+                    ];
+                    $(result.result).each(function(index, item) {
+                        let row_data = [item.goal, item.type, item.data1, item.data2.replace(/<br>/gi, '\n'), item.data3];
+                        friend_data.push(row_data);
+                    });
+                } else { // 값이 있다면
+                    friend_data = [];
+                    $(result.result).each(function(index, item) {
+                        let row_data = [item.goal, item.type, item.data1, item.data2.replace(/<br>/gi, '\n'), item.data3];
+                        friend_data.push(row_data);
+                    });
+                }
+
+                retrieve_friend_comment_db();
+            },
+            error: function(e) {
+                console.log(e);
+            }
+        });
+    }
+
+    function retrieve_friend_comment_db() {
+        let friend_name = get_friend_id(selected_friend_name);
+        $.ajax({
+            url: `/comment?id=${friend_name}&date=${cur_date}`,
+            type: 'GET',
+            success: function(result) {
+                friend_data_comment = "";
+                if (result.result.length != 0) { // 값이 있다면
+                    friend_data_comment = result.result[0].comment.replace(/<br>/gi, '\n');
+                }
 
                 if (mode == 1) retrieve_mode();
                 else if (mode == 2) modify_mode();
@@ -162,26 +248,31 @@
 
     function retrieve_mode() {
         mode = 1; // 조회 모드로 전환
+        $("#friend_select").css("display", 'block');
+        $("#friend_label").css("display", 'block');
+
         $('tr:not(.title)').remove();
 
         $('#cancel').css('display', 'none');
 
         $('#mode').text("수정");
-        $('#mode').css("background", "#FFD2D2");
 
         $("#control_title").css('display', 'table-cell');
         $("#state_title").css('width', '10%');
 
-        for (let i = 0; i < data.length; i++) {
-            $('table').append(make_row("me", i, data));
+        for (let i = 0; i < me_data.length; i++) {
+            $('table').append(make_retrieve_row("me", i));
         }
-        $('table').append(make_row("me", "avg"));
-        /*
-        for (let i = 0; i < data.length; i++) {
-            $('table').append(make_row("friend", i, data));
+        $('table').append(make_retrieve_row("me", "avg"));
+
+        // 친구를 선택했을 때만
+        if ($($('#friend_select').children("option:selected")).text() != '선택') {
+            for (let i = 0; i < friend_data.length; i++) {
+                $('table').append(make_retrieve_row("friend", i));
+            }
+            $('table').append(make_retrieve_row("friend", "avg"));
         }
-        $('table').append(make_row("friend", "avg"));
-        */
+
         $('.control_btn').click(control_click);
         $('.control_btn').click(change_percentage_color);
         change_percentage_color();
@@ -189,23 +280,25 @@
 
     function modify_mode() {
         mode = 2; // 수정 모드로 전환
+        $("#friend_select").css("display", 'none');
+        $("#friend_label").css("display", 'none');
+
         $('tr:not(.title)').remove();
 
         $('#cancel').css('display', 'inline-block');
         $('#cancel').css('margin-left', '2%');
 
         $('#mode').text("저장");
-        $('#mode').css("background", "#aef1a1");
 
         $("#control_title").css('display', 'none');
         $("#state_title").css('width', '20%');
 
-        for (let i = 0; i < data.length; i++) {
-            let ret = make_row2(i);
+        for (let i = 0; i < me_data.length; i++) {
+            let ret = make_modify_row(i);
             $('table').append(ret.table_row);
             $($('#row' + i).find('.type_sel')).val(ret.type);
         }
-        $('table').append(make_row2('plus'));
+        $('table').append(make_modify_row('plus'));
     }
 
     function input_is_empty() {
@@ -239,7 +332,7 @@
 
     function save_content_db() {
         $.ajax({
-            url: `/content?id=<%=id%>&date=${date}`,
+            url: `/content?id=<%=id%>&date=${cur_date}`,
             type: 'DELETE',
             success: function(result) {
                 for (let index = 0; index < temp_data.length; index++) {
@@ -255,7 +348,7 @@
                     if (length >= 4) data2 = replace_char(temp_data[index][3]);
                     if (length >= 5) data3 = replace_char(temp_data[index][4]);
                     $.ajax({
-                        url: `/content?id=<%=id%>&date=${date}&index=${index}&goal=${goal}&type=${type}&data1=${data1}&data2=${data2}&data3=${data3}`,
+                        url: `/content?id=<%=id%>&date=${cur_date}&index=${index}&goal=${goal}&type=${type}&data1=${data1}&data2=${data2}&data3=${data3}`,
                         type: 'POST',
                         success: function(result) {},
                         error: function(e) {}
@@ -414,11 +507,11 @@
             let p = $(item).parent();
             val = Number.parseInt(val.substr(0, val.length - 1));
             if (val < 30) {
-                p.css("background", "#FFD2D2");
+                p.css("background", "#ffdddd");
             } else if (val < 70) {
-                p.css("background", "#FFFF9B");
+                p.css("background", "#FEFEC3");
             } else {
-                p.css("background", "#aef1a1");
+                p.css("background", "#DCF8D7");
             }
         });
     }
@@ -466,6 +559,12 @@
     }
 
     function modify_input(self, kind) {
+        if ($(self).hasClass('only_number') && isNaN($(self).val())) {
+            alert('숫자만 입력 가능합니다.');
+            $(self).val('');
+            return;
+        }
+
         let p = $(self).parent();
         let pp = $(p).parent();
         let ppp = $(pp).parent();
@@ -505,15 +604,15 @@
         } else if (type == "X/O") {
             state += `X`;
         } else if (type == "개") {
-            state += `0개 / <input onchange="modify_input(this); input_size_check(this, 9);" /> 개`;
+            state += `0개 / <input class="only_number" onchange="modify_input(this); input_size_check(this, 9);" /> 개`;
         } else if (type == "회") {
-            state += `0회 / <input onchange="modify_input(this); input_size_check(this, 9);" /> 회`;
+            state += `0회 / <input class="only_number" onchange="modify_input(this); input_size_check(this, 9);" /> 회`;
         } else if (type == "세트") {
-            state += `0세트 / <input onchange="modify_input(this); input_size_check(this, 9);" /> 세트`;
+            state += `0세트 / <input class="only_number" onchange="modify_input(this); input_size_check(this, 9);" /> 세트`;
         } else if (type == "%") {
             state += `0% / 100%`;
         } else if (type == "단위입력") {
-            state += `0 / <input onchange = "modify_input(this, 0); input_size_check(this, 9);" placeholder="값"/>\
+            state += `0 / <input class="only_number" onchange = "modify_input(this, 0); input_size_check(this, 9);" placeholder="값"/>\
                           <input onchange = "modify_input(this, 1); input_size_check(this, 9);" placeholder="단위" /> `;
         } else if (type == "설명글") {
             state += `0% / 100%`;
@@ -544,15 +643,15 @@
         } else if (type == "X/O") {
             state_content += `${val[2]}`;
         } else if (type == "개") {
-            state_content += `${val[2]}개 / <input value=${val[3]} onchange="modify_input(this); input_size_check(this, 9);" /> 개`;
+            state_content += `${val[2]}개 / <input value=${val[3]} class="only_number" onchange="modify_input(this); input_size_check(this, 9);" /> 개`;
         } else if (type == "회") {
-            state_content += `${val[2]}회 / <input value=${val[3]} onchange="modify_input(this); input_size_check(this, 9);" /> 회`;
+            state_content += `${val[2]}회 / <input value=${val[3]} class="only_number" onchange="modify_input(this); input_size_check(this, 9);" /> 회`;
         } else if (type == "세트") {
-            state_content += `${val[2]}세트 / <input value=${val[3]} onchange="modify_input(this); input_size_check(this, 9);" /> 세트`;
+            state_content += `${val[2]}세트 / <input value=${val[3]} class="only_number" onchange="modify_input(this); input_size_check(this, 9);" /> 세트`;
         } else if (type == "%") {
             state_content += `${val[2]}% / 100%`;
         } else if (type == "단위입력") {
-            state_content += `${val[3]} / <input value=${val[4]} onchange="modify_input(this, 0); input_size_check(this, 9);" placeholder="값"/>\
+            state_content += `${val[3]} / <input value=${val[4]} class="only_number" onchange="modify_input(this, 0); input_size_check(this, 9);" placeholder="값"/>\
                                           <input value=${val[2]} onchange="modify_input(this, 1); input_size_check(this, 9);" placeholder="단위" /> `;
         } else if (type == "설명글") {
             state_content += `${val[2]}% / 100%`;
@@ -562,7 +661,7 @@
         return wrapper;
     }
 
-    function make_row2(index) {
+    function make_modify_row(index) {
         let table_row;
 
         if (index == 'plus') {
@@ -570,7 +669,7 @@
             <tr id='plus'>
                 <td style='border-right: 0px; padding-left: 8px;'>
                     <div style='width:100%; height: 3rem; line-height: 3rem;'>
-                        <img index=${data.length} class="add_goal" onclick="add(this)" src='plus.png' />
+                        <img index=${me_data.length} class="add_goal" onclick="add(this)" src='plus.png' />
                     </div>
                 </td>
                 <td colspan='2' style='border-left: 0px;'></td>
@@ -580,14 +679,14 @@
         }
 
         let goal, percentage, state = "";
-        let type = data[index][1];
-        goal = data[index][0];
-        state += make_state(type, data[index]);
+        let type = me_data[index][1];
+        goal = me_data[index][0];
+        state += make_state(type, me_data[index]);
 
         if (index == 0) {
             table_row = `
             <tr id='row${index}' class="row">
-                <td id='name' rowspan='${data.length + 1}'><%=name%></td>
+                <td id='name' rowspan='${me_data.length + 1}'><%=name%></td>
                 <td class='goal_td'>
                     <img index=${index} class="add_goal" onclick="add(this)" src='plus.png' />
                     <img index=${index} class="remove_goal" onclick="remove(this)" src='minus.png' />
@@ -626,11 +725,18 @@
 
     function save_comment_db() {
         $.ajax({
-            url: `/comment?id=<%=id%>&date=${date}&comment=${replace_char(data_comment)}`,
+            url: `/comment?id=<%=id%>&date=${cur_date}&comment=${replace_char(me_data_comment)}`,
             type: 'PUT',
             success: function(result) {},
             error: function(e) {}
         });
+    }
+
+    function check_num(self) {
+        if (isNaN($(self).val())) {
+            alert('숫자만 입력 가능합니다.');
+            $(self).val('');
+        }
     }
 
     function control_click() {
@@ -648,79 +754,81 @@
                 let textarea = `<textarea class='description' onchange="input_size_check(this, 300);" placeholder="내용 입력" />`;
                 $($(tr).find('.state')).html(textarea);
                 $($(tr).find('textarea')).val(val);
+                $($(tr).find('textarea')).focus();
             } else if (btn == "커멘트 저장") {
-                $(this).css("background", "#FFD2D2");
+                $(this).css("background", control_btn_color);
                 $(this).text("커멘트 수정");
                 let val = $($(tr).find('textarea')).val();
                 $($(tr).find('textarea')).remove();
-                data_comment = val;
-                $($(tr).find('.state')).text(data_comment);
+                me_data_comment = val;
+                $($(tr).find('.state')).text(me_data_comment);
                 save_comment_db();
             }
             return;
         }
 
-        let type = data[index][1];
+        let type = me_data[index][1];
         let percentage;
         let state;
         if (type == "X/O") {
             if (btn == "미완료") {
-                data[index][2] = "X";
+                me_data[index][2] = "X";
                 percentage = 0;
             } else if (btn == "완료") {
-                data[index][2] = "O";
+                me_data[index][2] = "O";
                 percentage = 100;
             }
-            state = data[index][2];
+            state = me_data[index][2];
         } else if (type == "개" || type == "회" || type == "세트") {
             let val;
             if (btn == "-5") {
-                val = Number.parseInt(data[index][2]) - 5;
+                val = Number.parseInt(me_data[index][2]) - 5;
             } else if (btn == "-1") {
-                val = Number.parseInt(data[index][2]) - 1;
+                val = Number.parseInt(me_data[index][2]) - 1;
             } else if (btn == "+1") {
-                val = Number.parseInt(data[index][2]) + 1;
+                val = Number.parseInt(me_data[index][2]) + 1;
             } else if (btn == "+5") {
-                val = Number.parseInt(data[index][2]) + 5;
+                val = Number.parseInt(me_data[index][2]) + 5;
             }
             if (val <= 0) val = 0;
-            data[index][2] = val;
-            percentage = (data[index][2] / data[index][3] * 100).toFixed(1);
-            state = `${data[index][2]+type} / ${data[index][3]+type}`;
+            me_data[index][2] = val;
+            percentage = (me_data[index][2] / me_data[index][3] * 100).toFixed(1);
+            state = `${me_data[index][2]+type} / ${me_data[index][3]+type}`;
         } else if (type == "%") {
             let val;
             if (btn == "-30") {
-                val = Number.parseInt(data[index][2]) - 30;
+                val = Number.parseInt(me_data[index][2]) - 30;
             } else if (btn == "-10") {
-                val = Number.parseInt(data[index][2]) - 10;
+                val = Number.parseInt(me_data[index][2]) - 10;
             } else if (btn == "+10") {
-                val = Number.parseInt(data[index][2]) + 10;
+                val = Number.parseInt(me_data[index][2]) + 10;
             } else if (btn == "+30") {
-                val = Number.parseInt(data[index][2]) + 30;
+                val = Number.parseInt(me_data[index][2]) + 30;
             }
             if (val <= 0) val = 0;
             if (val >= 100) val = 100;
-            data[index][2] = val;
+            me_data[index][2] = val;
             percentage = val;
             state = val + type;
         } else if (type == "단위입력") {
             if (btn == "수정") {
                 $(this).css("background", "#aef1a1");
                 $(this).text("저장");
-                let input = `<input/>`;
-                state = `${data[index][2]} / ${data[index][4]}${data[index][2]}`;
+                let input = `<input onchange="check_num(this);"/>`;
+                state = `${me_data[index][2]} / ${me_data[index][4]}${me_data[index][2]}`;
                 $($(tr).find('.state')).html(input + state);
-                $($(tr).find('input')).val(data[index][3]);
+                $($(tr).find('input')).val(me_data[index][3]);
+                $($(tr).find('input')).focus();
                 return;
             } else if (btn == "저장") {
-                $(this).css("background", "#FFD2D2");
+                $(this).css("background", control_btn_color);
                 $(this).text("수정");
                 let val = $($(tr).find('input')).val();
                 $($(tr).find('input')).remove();
                 if (val <= 0) val = 0;
-                data[index][3] = val;
-                percentage = (data[index][3] / data[index][4] * 100).toFixed(1);
-                state = `${data[index][3]}${data[index][2]} / ${data[index][4]}${data[index][2]}`;
+                me_data[index][3] = val;
+                percentage = (me_data[index][3] / me_data[index][4] * 100).toFixed(1);
+                state = `${me_data[index][3]}${me_data[index][2]} / ${me_data[index][4]}${me_data[index][2]}`;
             }
         } else if (type == "설명글") {
             // button name 처리
@@ -728,22 +836,23 @@
                 $(this).css("background", "#aef1a1");
                 $(this).text("저장");
             } else if (btn == "저장") {
-                $(this).css("background", "#FFD2D2");
+                $(this).css("background", control_btn_color);
                 $(this).text("수정");
             }
 
             // percentage 처리
             if (btn == "수정") {
-                state = data[index][2];
+                state = me_data[index][2];
                 let input = `<input />`;
                 $($(tr).find('.percentage')).html(input + "%");
                 $($(tr).find('input')).val(state);
+                $($(tr).find('input')).focus();
             } else if (btn == "저장") {
                 let val = $($(tr).find('input')).val();
                 $($(tr).find('input')).remove();
                 if (val <= 0) val = 0;
                 if (val >= 100) val = 100;
-                data[index][2] = val;
+                me_data[index][2] = val;
                 percentage = val;
             }
 
@@ -751,13 +860,13 @@
             if (btn == "수정") {
                 let textarea = `<textarea class='description' onchange="input_size_check(this, 300);"/>`;
                 $($(tr).find('.state')).html(textarea);
-                $($(tr).find('textarea')).val(data[index][3]);
+                $($(tr).find('textarea')).val(me_data[index][3]);
                 return;
             } else if (btn == "저장") {
                 let val = $($(tr).find('textarea')).val();
                 $($(tr).find('textarea')).remove();
-                data[index][3] = val;
-                state = data[index][3];
+                me_data[index][3] = val;
+                state = me_data[index][3];
             }
         }
         if (percentage <= 0) percentage = 0;
@@ -775,12 +884,12 @@
         else user = "friend";
 
         // db 저장
-        let goal = data[index][0];
-        let data1 = data[index][2];
-        let data2 = data[index][3];
-        let data3 = data[index][4];
+        let goal = me_data[index][0];
+        let data1 = me_data[index][2];
+        let data2 = me_data[index][3];
+        let data3 = me_data[index][4];
         $.ajax({
-            url: `/content?id=<%=id%>&date=${date}&index=${index}&goal=${goal}&type=${type}&data1=${data1}&data2=${data2}&data3=${data3}`,
+            url: `/content?id=<%=id%>&date=${cur_date}&index=${index}&goal=${goal}&type=${type}&data1=${data1}&data2=${data2}&data3=${data3}`,
             type: 'PUT',
             success: function(result) {},
             error: function(e) {}
@@ -805,7 +914,19 @@
         $($('#avg_' + user).find(".percentage")).text(avg + '%');
     }
 
-    function make_row(user, index) {
+    function make_retrieve_row(user, index) {
+        let name;
+        let data, data_comment;
+        if (user == 'me') {
+            name = '<%=name%>';
+            data = me_data;
+            data_comment = me_data_comment;
+        } else if (user == 'friend') {
+            name = selected_friend_name;
+            data = friend_data;
+            data_comment = friend_data_comment;
+        }
+
         let type, goal, percentage, state, control;
         if (index != 'avg') {
             type = data[index][1];
@@ -865,15 +986,16 @@
                 let val = data[index][3] / data[index][4] * 100;
                 percentage = val.toFixed(1);
                 control = `
-                <button class='control_btn' style="background: #FFD2D2;">수정</button>
+                <button class='control_btn' style="background: ${control_btn_color};">수정</button>
                 `;
             } else if (type == "설명글") {
                 state = `${data[index][3]}`;
                 percentage = data[index][2];
                 control = `
-                <button class='control_btn' style="background: #FFD2D2;">수정</button>
+                <button class='control_btn' style="background: ${control_btn_color};">수정</button>
                 `;
             }
+            if (user == 'friend') control = "";
         } else {
             // 평균 계산
             let rows = $('.' + user).length;
@@ -912,6 +1034,10 @@
             });
             if (flag == false) percentage = "-"; // 평균 없음
 
+            // 친구의 값은 control 할 수 없음
+            let btn = `<button class='control_btn' style="background: ${control_btn_color};">커멘트 수정</button>`;
+            if (user == 'friend') btn = "";
+
             table_row = `
             <tr id='avg_${user}' class="row avg" index="avg">
                 <td>
@@ -925,7 +1051,7 @@
                 </td>
                 <td class='control_td'>
                     <div class='control_div'>
-                        <button class='control_btn' style="background: #FFD2D2;">커멘트 수정</button>
+                        ${btn}
                     </div>
                 </td>
             </tr>
@@ -933,7 +1059,7 @@
         } else if (index == 0) {
             table_row = `
             <tr id='row${index}' class="row ${user}" index="${index}">
-                <td id='name' rowspan='${data.length + 1}'><%=name%></td>
+                <td id='name' rowspan='${data.length + 1}'>${name}</td>
                 <td>
                     <div class='goal'>${goal}</div>
                 </td>
@@ -984,117 +1110,6 @@
     function string_to_date(string) {
         return new Date(string.substr(0, 4), string.substr(5, 2) - 1, string.substr(8, 2));
     }
-
-    /*
-    function load_me() {
-        var load = 0;
-        clear_table();
-        var selected_date = string_to_date($('#calendar').val());
-        var date = [new Date(selected_date), new Date(selected_date), new Date(selected_date), new Date(selected_date), new Date(selected_date), new Date(selected_date), new Date(selected_date)];
-        date.forEach(function(ele, idx) {
-            ele.setDate(selected_date.getDate() - 3 + idx);
-            var name = '#week' + idx;
-            var date_str = date_to_string(ele);
-            $(name).find('#date').text(date_str);
-            $.ajax({
-                url: `/record?id=<%=id%>&date=${date_str}`,
-                data: null,
-                type: 'GET',
-                success: function(data) {
-                    load++;
-                    if (data.result.length != 0) { // DB 데이터가 있는 경우
-                        var goal = data.result[0].goal;
-                        var accomplish = data.result[0].accomplish;
-                        var score = data.result[0].score;
-                        goal = goal.replace(/<br>/gi, '\n');
-                        accomplish = accomplish.replace(/<br>/gi, '\n');
-                        set_table(idx, goal, accomplish, score);
-                    }
-                    if (load == 7) {
-                        load = 0;
-                        set_average();
-                    }
-                },
-                error: function(e) {
-                    console.log(e);
-                }
-            });
-        });
-    }
-
-    function load_friend() {
-        var load = 0;
-        clear_friend_table();
-        var selected_date = string_to_date($('#calendar').val());
-        var date = [new Date(selected_date), new Date(selected_date), new Date(selected_date), new Date(selected_date), new Date(selected_date), new Date(selected_date), new Date(selected_date)];
-        date.forEach(function(ele, idx) {
-            ele.setDate(selected_date.getDate() - 3 + idx);
-            var name = '#week' + idx;
-            var date_str = date_to_string(ele);
-            $(name).find('#date').text(date_str);
-            $.ajax({
-                url: `/record?id=${selected_friend}&date=${date_str}`,
-                data: null,
-                type: 'GET',
-                success: function(data) {
-                    load++;
-                    if (data.result.length != 0) { // DB 데이터가 있는 경우
-                        var goal = data.result[0].goal;
-                        var accomplish = data.result[0].accomplish;
-                        var score = data.result[0].score;
-                        goal = goal.replace(/<br>/gi, '\n');
-                        accomplish = accomplish.replace(/<br>/gi, '\n');
-                        set_friend_table(idx, goal, accomplish, score);
-                    }
-                    if (load == 7) {
-                        load = 0;
-                        set_friend_average();
-                    }
-                },
-                error: function(e) {
-                    console.log(e);
-                }
-            });
-        });
-    }
-    
-    $('#calendar').change(function() {
-        clear_color();
-        load_me();
-        load_friend();
-    });
-
-    $('#myself').text("<%=id%>");
-    $('select').change(function() {
-        clear_color();
-        selected_friend = $(this).children("option:selected").val();
-        $('#friend').text(selected_friend);
-        load_friend();
-    });
-    $.ajax({
-        url: `/friend?id=
-                <%=id%>`,
-        type: 'GET',
-        success: function(data) {
-            data.result.forEach(function(friend) {
-                $('select').append(`
-                    <option>${friend.friend_id}</option>`);
-            });
-        },
-        error: function(e) {
-            console.log(e);
-        }
-    });
-    $('#input').click(function() {
-        window.location.href = '/input';
-    });
-    $('#calendar').val(date_to_string(new Date()));
-    $('#calendar').trigger('change');
-    */
 </script>
-
-</html>
-
-</html>
 
 </html>
