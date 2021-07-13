@@ -1,0 +1,25 @@
+@import url(//fonts.googleapis.com/earlyaccess/jejugothic.css);
+#title {
+    font-size: 200%;
+}
+
+body {
+    padding: 2%;
+    font-family: 'Jeju Gothic', sans-serif;
+}
+
+input {
+    width: 50%;
+    font-family: 'Jeju Gothic', sans-serif;
+    font-size: 300%;
+    margin-top: 2%;
+}
+
+#contain {
+    display: flex;
+    flex-direction: column;
+}
+
+p {
+    font-size: 180%;
+}
